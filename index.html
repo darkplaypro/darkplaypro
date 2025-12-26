@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-MX">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Player Pro MX - Multi-Server</title>
+    <title>Dark Player Pro MX 🇲🇽</title>
+    <meta name="referrer" content="no-referrer">
     <style>
         :root { --green: #2ecc71; --dark: #000; }
         body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; padding: 15px; user-select: none; }
@@ -11,36 +12,54 @@
         iframe { width: 100%; height: 100%; border: none; }
         .movie-card { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; border: 1px solid #333; }
         .server-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn-server { padding: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 11px; }
+        .btn-server { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 11px; color: black; transition: 0.3s; }
+        .btn-server:active { transform: scale(0.95); }
         input { width: 70%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #151515; color: white; }
-        button#btn-ir { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; }
+        button#btn-ir { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .poster { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; }
     </style>
 </head>
 <body>
     <div style="max-width:500px; margin:auto;">
-        <h2 style="text-align:center; color:var(--green);">DARK PLAYER PRO MX 🇲🇽</h2>
-        <div id="video-box"><iframe id="ifr" allowfullscreen referrerpolicy="origin"></iframe></div>
+        <h2 style="text-align:center; color:var(--green); text-shadow: 0 0 10px var(--green);">DARK PLAYER PRO MX 🇲🇽</h2>
+        
+        <div id="video-box">
+            <iframe id="ifr" allowfullscreen referrerpolicy="origin" lang="es-MX"></iframe>
+        </div>
+
         <div id="m-c" class="movie-card">
             <h3 id="m-t" style="color:var(--green); margin:0;"></h3>
-            <p id="m-o" style="font-size:10px; margin: 10px 0;"></p>
+            <p id="m-o" style="font-size:10px; margin: 10px 0; line-height:1.4;"></p>
             <div class="server-grid" id="server-list"></div>
         </div>
-        <div style="display:flex; gap:5px;"><input type="text" id="q" placeholder="Buscar Película..."><button id="btn-ir" onclick="buscar()">IR</button></div>
+
+        <div style="display:flex; gap:5px;">
+            <input type="text" id="q" placeholder="Buscar en Latino...">
+            <button id="btn-ir" onclick="buscar()">IR</button>
+        </div>
+
         <div id="grid" class="grid"></div>
     </div>
 
     <script>
+        // Protección contra copia y herramientas de desarrollador
         document.addEventListener('contextmenu', e => e.preventDefault());
+        
         const API_KEY = 'bed364d1c4540454436cefd9d8a1c574';
+        // El Robot usará SIEMPRE la región MX para TMDB y servidores
+        const LOCALE = "es-MX"; 
 
         async function buscar() {
             const q = document.getElementById('q').value;
-            const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(q)}&language=es-MX`);
+            if(!q) return;
+            
+            // Forzamos a TMDB a darnos solo contenido disponible en México
+            const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(q)}&language=${LOCALE}&region=MX`);
             const d = await r.json();
             const g = document.getElementById('grid');
             g.innerHTML = "";
+            
             d.results.forEach(m => {
                 if(!m.poster_path) return;
                 const c = document.createElement('div');
@@ -51,7 +70,7 @@
                     document.getElementById('m-o').innerText = m.overview;
                     document.getElementById('m-c').style.display = 'block';
                     generarServidores(m.id);
-                    window.scrollTo(0,400);
+                    window.scrollTo({top: 400, behavior: 'smooth'});
                 };
                 g.appendChild(c);
             });
@@ -60,29 +79,34 @@
         function generarServidores(id) {
             const list = document.getElementById('server-list');
             list.innerHTML = "";
-            // Generamos 10 servidores con fuentes de scraping variadas
+            
+            // 10 Servidores con parámetros forzados de lenguaje español (lang=es)
             const servers = [
-                {n: "🇲🇽 LATINO 1", u: `https://vidsrc.icu/embed/movie/${id}`},
-                {n: "🇲🇽 LATINO 2", u: `https://vidsrc.pro/embed/movie/${id}`},
-                {n: "🇲🇽 LATINO 3", u: `https://multiembed.mov/?video_id=${id}&tmdb=1`},
-                {n: "🇲🇽 LATINO 4", u: `https://player.vidsrc.me/embed/movie/${id}`},
-                {n: "🇲🇽 LATINO 5", u: `https://autoembed.to/movie/tmdb/${id}`},
-                {n: "🇲🇽 LATINO 6", u: `https://www.2embed.cc/embed/${id}`},
-                {n: "🇲🇽 LATINO 7", u: `https://embed.smashystream.com/playere.php?tmdb=${id}`},
-                {n: "🇲🇽 LATINO 8", u: `https://blackvid.org/embed?tmdb=${id}`},
-                {n: "🇲🇽 LATINO 9", u: `https://moviesapi.club/movie/${id}`},
-                {n: "🇲🇽 VIP MX", u: `https://vidsrc.to/embed/movie/${id}`}
+                {n: "🇲🇽 LATINO VIP 1", u: `https://vidsrc.me/embed/movie?tmdb=${id}&lang=es`},
+                {n: "🇲🇽 LATINO VIP 2", u: `https://vidsrc.pro/embed/movie/${id}?lang=es`},
+                {n: "🇲🇽 LATINO VIP 3", u: `https://embed.su/embed/movie/${id}?lang=es`},
+                {n: "🇲🇽 LATINO VIP 4", u: `https://autoembed.to/movie/tmdb/${id}?lang=es`},
+                {n: "🇲🇽 LATINO VIP 5", u: `https://multiembed.mov/?video_id=${id}&tmdb=1&lang=es`},
+                {n: "🇲🇽 LATINO VIP 6", u: `https://www.2embed.cc/embed/${id}?lang=es`},
+                {n: "🇲🇽 LATINO VIP 7", u: `https://player.vidsrc.nl/embed/movie/${id}?lang=es`},
+                {n: "🇲🇽 LATINO VIP 8", u: `https://movieapi.club/movie/${id}?lang=es`},
+                {n: "🇲🇽 LATINO VIP 9", u: `https://blackvid.org/embed?tmdb=${id}&lang=es`},
+                {n: "🇲🇽 MÉXICO VIP", u: `https://vidsrc.xyz/embed/movie/${id}?lang=es`}
             ];
 
             servers.forEach((s, i) => {
                 const b = document.createElement('button');
                 b.className = 'btn-server';
+                // Alternamos colores verde y amarillo para que se vea mejor
                 b.style.background = i < 5 ? "#2ecc71" : "#f1c40f";
                 b.innerText = s.n;
                 b.onclick = () => {
+                    const ifr = document.getElementById('ifr');
                     document.getElementById('video-box').style.display = 'block';
-                    document.getElementById('ifr').src = s.u;
-                    window.scrollTo(0,0);
+                    // Aplicamos el "engaño" de lenguaje al iframe antes de cargar
+                    ifr.setAttribute('lang', 'es-MX');
+                    ifr.src = s.u;
+                    window.scrollTo({top: 0, behavior: 'smooth'});
                 };
                 list.appendChild(b);
             });
