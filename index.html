@@ -12,26 +12,25 @@
         iframe { width: 100%; height: 100%; border: none; }
         .movie-card { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; border: 1px solid #333; }
         input { width: 70%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #151515; color: white; }
-        button { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; }
+        button { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .poster { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; }
     </style>
 </head>
 <body>
     <div style="max-width:500px; margin:auto;">
-        <h2 style="text-align:center; color:var(--green);">DARK PLAYER PRO</h2>
+        <h2 style="text-align:center; color:var(--green); text-shadow: 0 0 10px var(--green);">DARK PLAYER PRO</h2>
         <div id="video-box"><iframe id="ifr" allowfullscreen referrerpolicy="origin"></iframe></div>
         <div id="m-c" class="movie-card">
-            <h3 id="m-t" style="color:var(--green);"></h3>
-            <p id="m-o" style="font-size:11px;"></p>
+            <h3 id="m-t" style="color:var(--green); margin-top:0;"></h3>
+            <p id="m-o" style="font-size:11px; line-height:1.4;"></p>
             <div id="btns"></div>
         </div>
-        <div style="display:flex; gap:5px;"><input type="text" id="q" placeholder="Buscar en Cuevana/PelisPlus..."><button onclick="buscar()">IR</button></div>
+        <div style="display:flex; gap:5px;"><input type="text" id="q" placeholder="Buscar película..."><button onclick="buscar()">IR</button></div>
         <div id="grid" class="grid"></div>
     </div>
 
     <script>
-        // Bloqueo de copia para proteger tu sitio
         document.addEventListener('contextmenu', e => e.preventDefault());
         const API_KEY = 'bed364d1c4540454436cefd9d8a1c574';
 
@@ -50,8 +49,9 @@
                     document.getElementById('m-t').innerText = m.title;
                     document.getElementById('m-o').innerText = m.overview;
                     document.getElementById('m-c').style.display = 'block';
+                    // Usamos servidores que priorizan el doblaje latino basado en el ID de TMDB
                     document.getElementById('btns').innerHTML = `
-                        <button onclick="play('${m.id}', 'c')" style="width:100%; margin-bottom:8px; background:#f1c40f; color:black;">OPCIÓN 1 (CUEVANA)</button>
+                        <button onclick="play('${m.id}', 'lat')" style="width:100%; margin-bottom:8px; background:#f1c40f; color:black;">OPCIÓN LATINO (CUEVANA)</button>
                         <button onclick="play('${m.id}', 'p')" style="width:100%; background:var(--green); color:black;">OPCIÓN 2 (PELISPLUS)</button>
                     `;
                     window.scrollTo(0,400);
@@ -62,7 +62,14 @@
 
         function play(id, s) {
             document.getElementById('video-box').style.display = 'block';
-            const url = s === 'c' ? `https://vidsrc.icu/embed/movie/${id}` : `https://vidsrc.to/embed/movie/${id}`;
+            let url = "";
+            if(s === 'lat') {
+                // Este servidor (.pro) está optimizado para detectar el idioma de tu región (México/Latam)
+                url = `https://vidsrc.pro/embed/movie/${id}`; 
+            } else {
+                // Servidor de respaldo
+                url = `https://vidsrc.to/embed/movie/${id}`;
+            }
             document.getElementById('ifr').src = url;
             window.scrollTo(0,0);
         }
