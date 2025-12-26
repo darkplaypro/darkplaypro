@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Player Pro MX 🇲🇽</title>
+    <title>Dark Token Extractor MX 🇲🇽</title>
     <style>
-        :root { --green: #2ecc71; --dark: #000; }
+        :root { --green: #2ecc71; --dark: #000; --gold: #f1c40f; }
         body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; padding: 15px; }
         .movie-card { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; border: 1px solid #333; }
-        .url-box { background: #000; color: #2ecc71; padding: 10px; border-radius: 8px; border: 1px solid #2ecc71; font-size: 11px; word-break: break-all; margin-top: 10px; display: none; }
-        .server-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn-server { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 11px; color: black; }
+        .token-box { background: #000; color: var(--gold); padding: 12px; border-radius: 8px; border: 2px dashed var(--green); font-size: 10px; word-break: break-all; margin: 10px 0; display: none; }
+        .server-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .btn-server { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 10px; color: black; display: flex; align-items: center; justify-content: center; gap: 5px; }
         input { width: 70%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #151515; color: white; }
         button#btn-ir { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
@@ -23,18 +23,15 @@
         
         <div id="m-c" class="movie-card">
             <h3 id="m-t" style="color:var(--green); margin:0;"></h3>
-            <p id="m-o" style="font-size:10px; margin: 10px 0;"></p>
+            <p style="font-size:10px; color:gray;">SISTEMA DE EXTRACCIÓN DINÁMICA (TOKEN TEMPORAL)</p>
             
-            <div id="url-display" class="url-box"></div>
-            <p id="copy-msg" style="font-size:9px; color:gray; display:none;">Copia este enlace y pégalo en MX Player</p>
+            <div id="url-m3u8" class="token-box"></div>
+            <button id="btn-copy" style="display:none; width:100%; background:var(--green); padding:10px; border:none; font-weight:bold; border-radius:5px; margin-bottom:10px;" onclick="copyUrl()">COPIAR ENLACE ACTUALIZADO</button>
 
             <div class="server-grid" id="server-list"></div>
         </div>
 
-        <div style="display:flex; gap:5px;">
-            <input type="text" id="q" placeholder="Buscar Película...">
-            <button id="btn-ir" onclick="buscar()">IR</button>
-        </div>
+        <div style="display:flex; gap:5px;"><input type="text" id="q" placeholder="Buscar Película..."><button id="btn-ir" onclick="buscar()">IR</button></div>
         <div id="grid" class="grid"></div>
     </div>
 
@@ -43,6 +40,8 @@
 
         async function buscar() {
             const q = document.getElementById('q').value;
+            if(!q) return;
+            // Petición fresca a TMDB
             const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(q)}&language=es-MX&region=MX`);
             const d = await r.json();
             const g = document.getElementById('grid');
@@ -51,13 +50,14 @@
                 if(!m.poster_path) return;
                 const c = document.createElement('div');
                 c.className = 'poster';
-                c.innerHTML = `<img src="https://image.tmdb.org/t/p/w300${m.poster_path}" width="100%"><p style="font-size:10px; text-align:center;">${m.title}</p>`;
+                c.innerHTML = `<img src="https://image.tmdb.org/t/p/w300${m.poster_path}" width="100%"><p style="font-size:10px; text-align:center; padding:5px;">${m.title}</p>`;
                 c.onclick = () => {
                     document.getElementById('m-t').innerText = m.title;
-                    document.getElementById('m-o').innerText = m.overview;
                     document.getElementById('m-c').style.display = 'block';
-                    document.getElementById('url-display').style.display = 'none';
+                    document.getElementById('url-m3u8').style.display = 'none';
+                    document.getElementById('btn-copy').style.display = 'none';
                     generarServidores(m.id);
+                    window.scrollTo({top: 0, behavior: 'smooth'});
                 };
                 g.appendChild(c);
             });
@@ -66,32 +66,47 @@
         function generarServidores(id) {
             const list = document.getElementById('server-list');
             list.innerHTML = "";
-            
-            // Estos son los servidores que el "robot" extraerá
+            // 10 fuentes para generar sesiones de token nuevas
             const servers = [
-                {n: "🇲🇽 LINK M3U8 1", u: `https://vidsrc.me/embed/movie?tmdb=${id}`},
-                {n: "🇲🇽 LINK M3U8 2", u: `https://vidsrc.pro/embed/movie/${id}`},
-                {n: "🇲🇽 LINK M3U8 3", u: `https://embed.su/embed/movie/${id}`}
+                {n: "🇲🇽 TOKEN 1", u: `https://vidsrc.me/embed/movie?tmdb=${id}`},
+                {n: "🇲🇽 TOKEN 2", u: `https://vidsrc.pro/embed/movie/${id}`},
+                {n: "🇲🇽 TOKEN 3", u: `https://embed.su/embed/movie/${id}`},
+                {n: "🇲🇽 TOKEN 4", u: `https://autoembed.to/movie/tmdb/${id}`},
+                {n: "🇲🇽 TOKEN 5", u: `https://multiembed.mov/?video_id=${id}&tmdb=1`},
+                {n: "🇲🇽 TOKEN 6", u: `https://www.2embed.cc/embed/${id}`},
+                {n: "🇲🇽 TOKEN 7", u: `https://player.vidsrc.nl/embed/movie/${id}`},
+                {n: "🇲🇽 TOKEN 8", u: `https://movieapi.club/movie/${id}`},
+                {n: "🇲🇽 TOKEN 9", u: `https://blackvid.org/embed?tmdb=${id}`},
+                {n: "🇲🇽 VIP MX", u: `https://vidsrc.xyz/embed/movie/${id}`}
             ];
 
             servers.forEach((s, i) => {
                 const b = document.createElement('button');
                 b.className = 'btn-server';
-                b.style.background = i === 0 ? "#2ecc71" : "#f1c40f";
+                b.style.background = i < 5 ? "#2ecc71" : "#f1c40f";
                 b.innerText = s.n;
                 b.onclick = () => {
-                    // Simulamos la extracción del enlace directo
-                    const display = document.getElementById('url-display');
-                    const msg = document.getElementById('copy-msg');
+                    // Paso 1: Abrir la web para que genere el token en ese segundo
+                    window.open(s.u, '_blank');
                     
-                    // Aquí mostramos el enlace que el usuario copiará
-                    display.innerText = s.u; 
-                    display.style.display = 'block';
-                    msg.style.display = 'block';
-                    window.scrollTo({top: 200, behavior: 'smooth'});
+                    // Paso 2: El usuario pega el link obtenido (que tiene el token de ese momento)
+                    const link = prompt("1. Dale PLAY en la otra pestaña.\n2. Copia el link .m3u8 generado con el TOKEN NUEVO.\n3. Pégalo aquí:");
+                    
+                    if(link && link.includes('.m3u8')) {
+                        const box = document.getElementById('url-m3u8');
+                        box.innerText = link;
+                        box.style.display = 'block';
+                        document.getElementById('btn-copy').style.display = 'block';
+                    }
                 };
                 list.appendChild(b);
             });
+        }
+
+        function copyUrl() {
+            const text = document.getElementById('url-m3u8').innerText;
+            navigator.clipboard.writeText(text);
+            alert("¡Token capturado! Pégalo en MX Player.");
         }
     </script>
 </body>
