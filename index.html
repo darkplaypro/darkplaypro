@@ -8,20 +8,33 @@
     <style>
         :root { --green: #2ecc71; --dark: #000; }
         body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; padding: 15px; user-select: none; }
-        .container { max-width: 500px; margin: auto; }
-        #video-box { width: 100%; aspect-ratio: 16/9; background: #000; display: none; border: 2px solid var(--green); border-radius: 12px; box-shadow: 0 0 15px var(--green); overflow: hidden; }
+        #video-box { width: 100%; aspect-ratio: 16/9; background: #000; display: none; border: 2px solid var(--green); border-radius: 12px; box-shadow: 0 0 15px var(--green); overflow: hidden; margin-bottom: 15px; }
         iframe { width: 100%; height: 100%; border: none; }
         .movie-card { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; border: 1px solid #333; }
-        .search-bar { display: flex; gap: 8px; margin-bottom: 20px; }
-        input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #151515; color: white; }
+        input { width: 70%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #151515; color: white; }
         button { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .poster { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; }
     </style>
+</head>
+<body>
+    <div style="max-width:500px; margin:auto;">
+        <h2 style="text-align:center; color:var(--green);">DARK PLAYER PRO</h2>
+        <div id="video-box"><iframe id="ifr" allowfullscreen referrerpolicy="origin"></iframe></div>
+        <div id="m-c" class="movie-card">
+            <h3 id="m-t" style="color:var(--green);"></h3>
+            <p id="m-o" style="font-size:11px;"></p>
+            <div id="btns"></div>
+        </div>
+        <div style="display:flex; gap:5px;"><input type="text" id="q" placeholder="Buscar en Cuevana/PelisPlus..."><button onclick="buscar()">IR</button></div>
+        <div id="grid" class="grid"></div>
+    </div>
+
     <script>
+        // Bloqueo de copia para proteger tu sitio
         document.addEventListener('contextmenu', e => e.preventDefault());
-        document.onkeydown = e => { if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false; };
         const API_KEY = 'bed364d1c4540454436cefd9d8a1c574';
+
         async function buscar() {
             const q = document.getElementById('q').value;
             const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(q)}&language=es-MX`);
@@ -29,32 +42,30 @@
             const g = document.getElementById('grid');
             g.innerHTML = "";
             d.results.forEach(m => {
+                if(!m.poster_path) return;
                 const c = document.createElement('div');
                 c.className = 'poster';
-                c.innerHTML = `<img src="https://image.tmdb.org/t/p/w300${m.poster_path}" width="100%"><p style="font-size:10px; text-align:center;">${m.title}</p>`;
+                c.innerHTML = `<img src="https://image.tmdb.org/t/p/w300${m.poster_path}" width="100%"><p style="font-size:10px; text-align:center; padding:5px;">${m.title}</p>`;
                 c.onclick = () => {
                     document.getElementById('m-t').innerText = m.title;
                     document.getElementById('m-o').innerText = m.overview;
                     document.getElementById('m-c').style.display = 'block';
-                    document.getElementById('s').onclick = () => {
-                        const v = document.getElementById('video-box');
-                        v.style.display = 'block';
-                        document.getElementById('ifr').src = `https://vidsrc.xyz/embed/movie?query=${encodeURIComponent(m.title)}&lang=es`;
-                        window.scrollTo(0,0);
-                    };
+                    document.getElementById('btns').innerHTML = `
+                        <button onclick="play('${m.id}', 'c')" style="width:100%; margin-bottom:8px; background:#f1c40f; color:black;">OPCIÓN 1 (CUEVANA)</button>
+                        <button onclick="play('${m.id}', 'p')" style="width:100%; background:var(--green); color:black;">OPCIÓN 2 (PELISPLUS)</button>
+                    `;
+                    window.scrollTo(0,400);
                 };
                 g.appendChild(c);
             });
         }
+
+        function play(id, s) {
+            document.getElementById('video-box').style.display = 'block';
+            const url = s === 'c' ? `https://vidsrc.icu/embed/movie/${id}` : `https://vidsrc.to/embed/movie/${id}`;
+            document.getElementById('ifr').src = url;
+            window.scrollTo(0,0);
+        }
     </script>
-</head>
-<body>
-    <div class="container">
-        <h2 style="text-align:center; color:var(--green);">DARK PLAYER PRO</h2>
-        <div id="video-box"><iframe id="ifr" allowfullscreen></iframe></div>
-        <div id="m-c" class="movie-card"><h3 id="m-t"></h3><p id="m-o" style="font-size:11px;"></p><button id="s" style="width:100%;">REPRODUCIR</button></div>
-        <div class="search-bar"><input type="text" id="q" placeholder="Buscar..."><button onclick="buscar()">IR</button></div>
-        <div id="grid" class="grid"></div>
-    </div>
 </body>
 </html>
