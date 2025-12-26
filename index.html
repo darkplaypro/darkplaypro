@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dark Player Pro MX</title>
-    <meta name="referrer" content="no-referrer">
+    <title>Dark Player Pro MX - Multi-Server</title>
     <style>
         :root { --green: #2ecc71; --dark: #000; }
         body { background: var(--dark); color: white; font-family: sans-serif; margin: 0; padding: 15px; user-select: none; }
         #video-box { width: 100%; aspect-ratio: 16/9; background: #000; display: none; border: 2px solid var(--green); border-radius: 12px; box-shadow: 0 0 15px var(--green); overflow: hidden; margin-bottom: 15px; }
         iframe { width: 100%; height: 100%; border: none; }
         .movie-card { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; border: 1px solid #333; }
+        .server-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .btn-server { padding: 10px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 11px; }
         input { width: 70%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #151515; color: white; }
-        button { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        button#btn-ir { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .poster { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; }
     </style>
 </head>
 <body>
     <div style="max-width:500px; margin:auto;">
-        <h2 style="text-align:center; color:var(--green); text-shadow: 0 0 10px var(--green);">DARK PLAYER PRO</h2>
+        <h2 style="text-align:center; color:var(--green);">DARK PLAYER PRO MX 🇲🇽</h2>
         <div id="video-box"><iframe id="ifr" allowfullscreen referrerpolicy="origin"></iframe></div>
         <div id="m-c" class="movie-card">
-            <h3 id="m-t" style="color:var(--green); margin-top:0;"></h3>
-            <p id="m-o" style="font-size:11px; line-height:1.4;"></p>
-            <div id="btns"></div>
+            <h3 id="m-t" style="color:var(--green); margin:0;"></h3>
+            <p id="m-o" style="font-size:10px; margin: 10px 0;"></p>
+            <div class="server-grid" id="server-list"></div>
         </div>
-        <div style="display:flex; gap:5px;"><input type="text" id="q" placeholder="Buscar película..."><button onclick="buscar()">IR</button></div>
+        <div style="display:flex; gap:5px;"><input type="text" id="q" placeholder="Buscar Película..."><button id="btn-ir" onclick="buscar()">IR</button></div>
         <div id="grid" class="grid"></div>
     </div>
 
@@ -49,29 +50,42 @@
                     document.getElementById('m-t').innerText = m.title;
                     document.getElementById('m-o').innerText = m.overview;
                     document.getElementById('m-c').style.display = 'block';
-                    // Usamos servidores que priorizan el doblaje latino basado en el ID de TMDB
-                    document.getElementById('btns').innerHTML = `
-                        <button onclick="play('${m.id}', 'lat')" style="width:100%; margin-bottom:8px; background:#f1c40f; color:black;">OPCIÓN LATINO (CUEVANA)</button>
-                        <button onclick="play('${m.id}', 'p')" style="width:100%; background:var(--green); color:black;">OPCIÓN 2 (PELISPLUS)</button>
-                    `;
+                    generarServidores(m.id);
                     window.scrollTo(0,400);
                 };
                 g.appendChild(c);
             });
         }
 
-        function play(id, s) {
-            document.getElementById('video-box').style.display = 'block';
-            let url = "";
-            if(s === 'lat') {
-                // Este servidor (.pro) está optimizado para detectar el idioma de tu región (México/Latam)
-                url = `https://vidsrc.pro/embed/movie/${id}`; 
-            } else {
-                // Servidor de respaldo
-                url = `https://vidsrc.to/embed/movie/${id}`;
-            }
-            document.getElementById('ifr').src = url;
-            window.scrollTo(0,0);
+        function generarServidores(id) {
+            const list = document.getElementById('server-list');
+            list.innerHTML = "";
+            // Generamos 10 servidores con fuentes de scraping variadas
+            const servers = [
+                {n: "🇲🇽 LATINO 1", u: `https://vidsrc.icu/embed/movie/${id}`},
+                {n: "🇲🇽 LATINO 2", u: `https://vidsrc.pro/embed/movie/${id}`},
+                {n: "🇲🇽 LATINO 3", u: `https://multiembed.mov/?video_id=${id}&tmdb=1`},
+                {n: "🇲🇽 LATINO 4", u: `https://player.vidsrc.me/embed/movie/${id}`},
+                {n: "🇲🇽 LATINO 5", u: `https://autoembed.to/movie/tmdb/${id}`},
+                {n: "🇲🇽 LATINO 6", u: `https://www.2embed.cc/embed/${id}`},
+                {n: "🇲🇽 LATINO 7", u: `https://embed.smashystream.com/playere.php?tmdb=${id}`},
+                {n: "🇲🇽 LATINO 8", u: `https://blackvid.org/embed?tmdb=${id}`},
+                {n: "🇲🇽 LATINO 9", u: `https://moviesapi.club/movie/${id}`},
+                {n: "🇲🇽 VIP MX", u: `https://vidsrc.to/embed/movie/${id}`}
+            ];
+
+            servers.forEach((s, i) => {
+                const b = document.createElement('button');
+                b.className = 'btn-server';
+                b.style.background = i < 5 ? "#2ecc71" : "#f1c40f";
+                b.innerText = s.n;
+                b.onclick = () => {
+                    document.getElementById('video-box').style.display = 'block';
+                    document.getElementById('ifr').src = s.u;
+                    window.scrollTo(0,0);
+                };
+                list.appendChild(b);
+            });
         }
     </script>
 </body>
