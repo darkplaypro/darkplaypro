@@ -12,10 +12,9 @@
         iframe { width: 100%; height: 100%; border: none; }
         .movie-card { background: #111; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; border: 1px solid #333; }
         .server-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-        .btn-server { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 11px; color: black; transition: 0.3s; }
-        .btn-server:active { transform: scale(0.95); }
+        .btn-server { padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; font-size: 11px; color: black; display: flex; align-items: center; justify-content: center; gap: 5px; }
         input { width: 70%; padding: 12px; border-radius: 8px; border: 1px solid #333; background: #151515; color: white; }
-        button#btn-ir { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        button#btn-ir { padding: 12px; background: var(--green); border: none; border-radius: 8px; font-weight: bold; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
         .poster { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; }
     </style>
@@ -23,43 +22,28 @@
 <body>
     <div style="max-width:500px; margin:auto;">
         <h2 style="text-align:center; color:var(--green); text-shadow: 0 0 10px var(--green);">DARK PLAYER PRO MX 🇲🇽</h2>
-        
-        <div id="video-box">
-            <iframe id="ifr" allowfullscreen referrerpolicy="origin" lang="es-MX"></iframe>
-        </div>
-
+        <div id="video-box"><iframe id="ifr" allowfullscreen lang="es-MX" xml:lang="es-MX"></iframe></div>
         <div id="m-c" class="movie-card">
             <h3 id="m-t" style="color:var(--green); margin:0;"></h3>
             <p id="m-o" style="font-size:10px; margin: 10px 0; line-height:1.4;"></p>
             <div class="server-grid" id="server-list"></div>
         </div>
-
-        <div style="display:flex; gap:5px;">
-            <input type="text" id="q" placeholder="Buscar en Latino...">
-            <button id="btn-ir" onclick="buscar()">IR</button>
-        </div>
-
+        <div style="display:flex; gap:5px;"><input type="text" id="q" placeholder="Buscar en México..."><button id="btn-ir" onclick="buscar()">IR</button></div>
         <div id="grid" class="grid"></div>
     </div>
 
     <script>
-        // Protección contra copia y herramientas de desarrollador
         document.addEventListener('contextmenu', e => e.preventDefault());
-        
         const API_KEY = 'bed364d1c4540454436cefd9d8a1c574';
-        // El Robot usará SIEMPRE la región MX para TMDB y servidores
-        const LOCALE = "es-MX"; 
+        const LOCALE = "es-MX";
 
         async function buscar() {
             const q = document.getElementById('q').value;
             if(!q) return;
-            
-            // Forzamos a TMDB a darnos solo contenido disponible en México
             const r = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(q)}&language=${LOCALE}&region=MX`);
             const d = await r.json();
             const g = document.getElementById('grid');
             g.innerHTML = "";
-            
             d.results.forEach(m => {
                 if(!m.poster_path) return;
                 const c = document.createElement('div');
@@ -79,8 +63,7 @@
         function generarServidores(id) {
             const list = document.getElementById('server-list');
             list.innerHTML = "";
-            
-            // 10 Servidores con parámetros forzados de lenguaje español (lang=es)
+            // Nuevos parámetros para forzar el doblaje latino en los servidores
             const servers = [
                 {n: "🇲🇽 LATINO VIP 1", u: `https://vidsrc.me/embed/movie?tmdb=${id}&lang=es`},
                 {n: "🇲🇽 LATINO VIP 2", u: `https://vidsrc.pro/embed/movie/${id}?lang=es`},
@@ -97,13 +80,12 @@
             servers.forEach((s, i) => {
                 const b = document.createElement('button');
                 b.className = 'btn-server';
-                // Alternamos colores verde y amarillo para que se vea mejor
                 b.style.background = i < 5 ? "#2ecc71" : "#f1c40f";
                 b.innerText = s.n;
                 b.onclick = () => {
                     const ifr = document.getElementById('ifr');
                     document.getElementById('video-box').style.display = 'block';
-                    // Aplicamos el "engaño" de lenguaje al iframe antes de cargar
+                    // Inyectamos el lenguaje en el iframe para engañar al reproductor
                     ifr.setAttribute('lang', 'es-MX');
                     ifr.src = s.u;
                     window.scrollTo({top: 0, behavior: 'smooth'});
