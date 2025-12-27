@@ -3,114 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DarkPlay Pro - Cazador Latino</title>
+    <title>DarkPlay Pro - Test Latino</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { font-family: sans-serif; background: #0a0a0a; color: white; text-align: center; padding: 15px; margin: 0; }
-        .search-area { background: #1a1a1a; padding: 20px; border-bottom: 2px solid #e50914; position: sticky; top: 0; z-index: 100; }
-        input { padding: 12px; width: 60%; border-radius: 5px; border: 1px solid #333; background: #000; color: white; outline: none; }
-        button { padding: 12px 20px; background: #e50914; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        
-        /* Tarjeta de Película */
-        #container-peli { display: none; margin: 20px auto; max-width: 400px; background: #141414; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
-        #poster-img { width: 100%; display: block; }
-        .peli-info { padding: 15px; text-align: left; }
-        h2 { margin: 0 0 10px 0; font-size: 22px; }
-        
-        /* Extractor */
-        .box-extractor { background: #222; margin: 15px; padding: 15px; border-radius: 8px; }
-        .status-msg { font-size: 13px; color: #f1c40f; margin-bottom: 10px; display: block; }
-        textarea { width: 100%; height: 60px; background: #000; color: #2ecc71; border: 1px solid #444; padding: 8px; font-size: 11px; resize: none; box-sizing: border-box; border-radius: 4px; }
-        .btn-blue { background: #3498db; width: 100%; margin-bottom: 10px; }
-        .btn-green { background: #27ae60; width: 100%; margin-top: 10px; }
+        body { font-family: sans-serif; background: #000; color: white; text-align: center; margin: 0; padding: 10px; }
+        .peli-card { background: #141414; border-radius: 15px; overflow: hidden; max-width: 400px; margin: 20px auto; border: 1px solid #333; }
+        #video-reproductor { width: 100%; display: none; background: #000; aspect-ratio: 16/9; }
+        .btn-play { background: #e50914; color: white; padding: 15px; width: 100%; border: none; font-weight: bold; cursor: pointer; }
+        .info { padding: 15px; text-align: left; }
+        #status { color: #27ae60; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="search-area">
-        <h2 style="color: #e50914; margin-bottom: 15px;">DarkPlay Pro</h2>
-        <input type="text" id="busqueda-input" placeholder="Ej: Rambo o Matilda...">
-        <button onclick="buscarPeli()">BUSCAR</button>
-    </div>
+    <h2 style="color: #e50914;">PRUEBA DE REPRODUCCIÓN</h2>
 
-    <div id="container-peli">
-        <img id="poster-img" src="" alt="Portada">
-        <div class="peli-info">
-            <h2 id="peli-titulo"></h2>
-            <p id="peli-desc" style="font-size: 13px; color: #bbb; line-height: 1.4;"></p>
+    <div class="peli-card">
+        <img src="https://image.tmdb.org/t/p/w500/sh7e9jC0v786pUQM6f10A9clYp5.jpg" style="width: 100%;">
+        <div class="info">
+            <h3>Película de Prueba (Latino)</h3>
+            <p id="status">Servidor: Edgeon-Bandwidth Detectado</p>
         </div>
-
-        <div class="box-extractor">
-            <span id="label-estado" class="status-msg">Película cargada correctamente.</span>
-            
-            <button class="btn-blue" onclick="extraerEnVivo()">🔍 OLFATEAR ENLACE + TOKEN</button>
-            
-            <textarea id="output-link" readonly placeholder="Aquí aparecerá el enlace extraído..."></textarea>
-            
-            <button class="btn-green" onclick="mandarAMX()">▶ REPRODUCIR EN MX PLAYER</button>
-        </div>
+        
+        <video id="video-reproductor" controls></video>
+        <button id="btn-repro" class="btn-play" onclick="activarFlujo()">▶ REPRODUCIR AHORA</button>
     </div>
 
     <script>
-        // TU API KEY PERSONALIZADA
-        const MI_API_KEY = 'bed364d1c4540454436cefd9d8a1c574';
+        // Esta es la base que guardaremos en tu DB (sin el token caducado)
+        const URL_BASE = "https://cdn-llbaa8r4vvm8ea9r.edgeon-bandwidth.com/engine/hls2-c/01/16101/veet7vmt4qmx_,n,.urlset/master.m3u8";
+        
+        // El token que me pasaste (lo usamos para esta prueba inicial)
+        const TOKEN_ACTUAL = "?t=YzjdJR77qTHt_ZnSjyo9eN9qOYphlsBQJeUGG8PdQaU&s=1766806353&e=14400&f=80656327&node=4LGAMh8o8XDdh9GyDh/zPBfQeD/JdRIqe16LTbNYigs=&i=0.1&sp=2500&asn=13999&q=n&rq=ETT8ZEWTZ8KLfive2dhgdql2sXAqVorVjLXXiqA9";
 
-        async function buscarPeli() {
-            const query = document.getElementById('busqueda-input').value;
-            if(!query) return alert("Escribe el nombre de la película");
+        function activarFlujo() {
+            const video = document.getElementById('video-reproductor');
+            const btn = document.getElementById('btn-repro');
+            const urlFinal = URL_BASE + TOKEN_ACTUAL;
 
-            const url = `https://api.themoviedb.org/3/search/movie?api_key=${MI_API_KEY}&query=${encodeURIComponent(query)}&language=es-MX`;
+            console.log("Intentando reproducir:", urlFinal);
 
-            try {
-                const res = await fetch(url);
-                const data = await res.json();
-
-                if(data.results && data.results.length > 0) {
-                    const p = data.results[0];
-                    document.getElementById('peli-titulo').innerText = p.title;
-                    document.getElementById('peli-desc').innerText = p.overview || "Sin descripción.";
-                    document.getElementById('poster-img').src = `https://image.tmdb.org/t/p/w500${p.poster_path}`;
-                    
-                    document.getElementById('container-peli').style.display = 'block';
-                    document.getElementById('output-link').value = "";
-                    document.getElementById('label-estado').innerText = "✅ Listo para extraer enlace latino.";
-                    document.getElementById('label-estado').style.color = "#f1c40f";
-                } else {
-                    alert("No se encontraron resultados con tu API Key.");
-                }
-            } catch (err) {
-                alert("Error al conectar con la base de datos de películas.");
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(urlFinal);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    btn.style.display = 'none';
+                    video.style.display = 'block';
+                    video.play();
+                });
+                
+                hls.on(Hls.Events.ERROR, function (event, data) {
+                    if (data.fatal) {
+                        alert("El token ha caducado. Necesitamos olfatear uno nuevo.");
+                    }
+                });
+            } 
+            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = urlFinal;
+                btn.style.display = 'none';
+                video.style.display = 'block';
+                video.play();
             }
-        }
-
-        async function extraerEnVivo() {
-            const status = document.getElementById('label-estado');
-            const caja = document.getElementById('output-link');
-            
-            status.innerText = "🚀 Olfateando en vivo (Modo Web Video Caster)...";
-            status.style.color = "#3498db";
-
-            // Simulación de la tecnología de extracción con token dinámico
-            setTimeout(() => {
-                // Link base ejemplo + Token generado al momento
-                const baseLink = "https://mx9skjnui4es.premilkyway.com/hls2/01/13320/wtpnif12tp4f_h/master.m3u8";
-                const tokenPro = "?t=DARK_" + Math.random().toString(36).substring(2, 10).toUpperCase();
-                
-                caja.value = baseLink + tokenPro;
-                
-                status.innerText = "✅ ¡ENLACE COMPLETO ATRAPADO!";
-                status.style.color = "#2ecc71";
-                
-                // Tip para tu base de datos futura:
-                console.log("Para tu DB guarda este sin el token:", baseLink);
-            }, 1500);
-        }
-
-        function mandarAMX() {
-            const linkFinal = document.getElementById('output-link').value;
-            if(!linkFinal) return alert("Primero pulsa el botón de olfatear.");
-            
-            // Intent para abrir MX Player Pro o Free
-            window.location.href = `intent:${linkFinal}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encodeURIComponent(document.getElementById('peli-titulo').innerText)};end`;
         }
     </script>
 </body>
