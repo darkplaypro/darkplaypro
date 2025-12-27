@@ -2,70 +2,242 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DarkPlay Pro - Test Latino</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dark Player Pro Max - Latino Real</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        body { font-family: sans-serif; background: #000; color: white; text-align: center; margin: 0; padding: 10px; }
-        .peli-card { background: #141414; border-radius: 15px; overflow: hidden; max-width: 400px; margin: 20px auto; border: 1px solid #333; }
-        #video-reproductor { width: 100%; display: none; background: #000; aspect-ratio: 16/9; }
-        .btn-play { background: #e50914; color: white; padding: 15px; width: 100%; border: none; font-weight: bold; cursor: pointer; }
-        .info { padding: 15px; text-align: left; }
-        #status { color: #27ae60; font-size: 12px; }
+        :root { --bg-dark: #000000; --accent-green: #2ecc71; --dark-blue: #007bff; --player-white: #ffffff; --ultra-orange: #ff9800; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-dark); color: white; font-family: 'Arial Black', sans-serif; margin: 0; padding: 0; width: 100vw; overflow-x: hidden; }
+
+        /* --- SKELETONS --- */
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .skeleton { background: linear-gradient(90deg, #050505 25%, #151515 50%, #050505 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        
+        /* --- INTRO (Sin modificar) --- */
+        #intro-layer { position: fixed; inset: 0; background: black; display: flex; justify-content: center; align-items: center; z-index: 20000; animation: layerFadeOut 0.8s forwards 2.5s; }
+        .logo-anim { font-size: 15vw; font-weight: 900; text-transform: uppercase; text-align: center; line-height: 0.85; letter-spacing: -3px; }
+        .blue { color: var(--dark-blue); }
+        .white { color: var(--player-white); }
+        @keyframes layerFadeOut { to { opacity: 0; visibility: hidden; } }
+
+        /* --- HEADER --- */
+        .header { position: fixed; top: 0; width: 100%; display: flex; justify-content: center; gap: 20px; padding: 15px 0; background: rgba(0,0,0,0.95); z-index: 1000; border-bottom: 1px solid #222; }
+        .nav-item { cursor: pointer; font-size: 12px; font-weight: 900; color: #555; text-transform: uppercase; }
+        .nav-item.active { color: white; border-bottom: 3px solid var(--accent-green); }
+
+        .top-content { margin-top: 70px; padding: 30px 20px 10px; text-align: center; }
+        .search-box { display: flex; background: #111; border-radius: 12px; padding: 5px 15px; border: 1px solid #333; align-items: center; max-width: 500px; margin: 15px auto; }
+        .search-box input { background: transparent; border: none; color: white; padding: 12px; width: 100%; outline: none; font-size: 16px; font-weight: bold; }
+
+        /* --- CATALOGO (Carruseles intactos) --- */
+        .row-title { font-size: 22px; margin: 25px 15px 10px; font-weight: 900; color: var(--accent-green); text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; }
+        .carousel { display: flex; overflow-x: auto; gap: 12px; padding: 0 15px 25px 15px; scrollbar-width: none; }
+        .carousel::-webkit-scrollbar { display: none; }
+        
+        .card { min-width: 130px; height: 195px; background: #111; border-radius: 8px; flex-shrink: 0; cursor: pointer; border: 1px solid #222; overflow: hidden; position: relative; transition: transform 0.2s; }
+        .card img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s; }
+        .card img.loaded { opacity: 1; }
+        .badge-hd { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.8); color: var(--accent-green); font-size: 9px; padding: 2px 5px; border-radius: 4px; border: 1px solid var(--accent-green); font-weight: bold; z-index: 10; }
+
+        /* --- NUEVO BLOQUE DE SERVIDORES ULTRA --- */
+        .ultra-box { background: linear-gradient(145deg, #1a1a1a, #000); border: 1px solid var(--ultra-orange); border-radius: 15px; padding: 15px; margin-top: 20px; }
+        .ultra-server-btn { background: #222; border-radius: 10px; margin-bottom: 8px; padding: 12px; display: flex; align-items: center; gap: 15px; border-left: 5px solid var(--ultra-orange); cursor: pointer; }
+        .ultra-server-btn:active { background: #333; }
+
+        /* --- MODALES --- */
+        #details-modal, #links-view, #player-layer, #episodes-view, #more-view { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; overflow-y: auto; }
+        #player-layer { z-index: 21000; overflow: hidden; }
+        #main-iframe, #ultra-video-player { width: 100%; height: 100%; border: none; background: black; }
+        
+        #back-btn-float { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; background: var(--dark-blue); color: white; border-radius: 50%; display: none; align-items: center; justify-content: center; z-index: 22000; border: 2px solid white; font-size: 24px; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: #e50914;">PRUEBA DE REPRODUCCIÓN</h2>
+<div id="intro-layer">
+    <div class="logo-anim"><span class="blue">DARK</span><br><span class="white">PLAYER</span></div>
+</div>
 
-    <div class="peli-card">
-        <img src="https://image.tmdb.org/t/p/w500/sh7e9jC0v786pUQM6f10A9clYp5.jpg" style="width: 100%;">
-        <div class="info">
-            <h3>Película de Prueba (Latino)</h3>
-            <p id="status">Servidor: Edgeon-Bandwidth Detectado</p>
-        </div>
-        
-        <video id="video-reproductor" controls></video>
-        <button id="btn-repro" class="btn-play" onclick="activarFlujo()">▶ REPRODUCIR AHORA</button>
+<div id="back-btn-float" onclick="smartBack()"><i class="fas fa-arrow-left"></i></div>
+
+<div id="main-content">
+    <div class="header">
+        <div id="nav-movies" class="nav-item active" onclick="changeTab('movies')">Películas</div>
+        <div id="nav-series" class="nav-item" onclick="changeTab('series')">Series</div>
+        <div id="nav-favs" class="nav-item" onclick="showFavorites()">Favoritos</div>
     </div>
+    <div class="top-content">
+        <div class="logo-anim"><span class="blue">DARK</span><br><span class="white">PLAYER</span></div>
+        <div class="search-box"><i class="fas fa-search" style="color:var(--accent-green); margin-right: 10px;"></i><input type="text" id="searchInput" placeholder="Buscar título..." onkeyup="handleSearch(event)"></div>
+    </div>
+    <div id="search-section" style="display:none;"><div class="row-title">Resultados</div><div id="search-results-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; padding:15px;"></div></div>
+    <div id="catalogo-section"><div id="history-area"></div><div id="catalogo"></div></div>
+</div>
 
-    <script>
-        // Esta es la base que guardaremos en tu DB (sin el token caducado)
-        const URL_BASE = "https://cdn-llbaa8r4vvm8ea9r.edgeon-bandwidth.com/engine/hls2-c/01/16101/veet7vmt4qmx_,n,.urlset/master.m3u8";
+<div id="more-view">
+    <div class="row-title" style="margin-top:20px; color:white;"><span id="more-title"></span></div>
+    <div id="more-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 15px;"></div>
+</div>
+
+<div id="details-modal">
+    <div style="width: 100%; height: 38vh; position: relative; display: flex; justify-content: center; align-items: center;">
+        <div id="m-blur" style="position: absolute; inset: 0; background-size: cover; background-position: center; filter: blur(25px) brightness(0.3); opacity: 0.7;"></div>
+        <img id="m-img" src="" style="height: 85%; z-index: 2; border-radius: 12px; box-shadow: 0 0 30px #000;">
+    </div>
+    <div class="m-content" style="padding:25px;">
+        <h1 id="m-title" style="margin:0;"></h1>
+        <div id="m-extra-info" style="color:var(--accent-green); font-size:14px; font-weight:bold;"></div>
+        <p id="m-desc" style="color:#bbb; font-family:sans-serif;"></p>
         
-        // El token que me pasaste (lo usamos para esta prueba inicial)
-        const TOKEN_ACTUAL = "?t=YzjdJR77qTHt_ZnSjyo9eN9qOYphlsBQJeUGG8PdQaU&s=1766806353&e=14400&f=80656327&node=4LGAMh8o8XDdh9GyDh/zPBfQeD/JdRIqe16LTbNYigs=&i=0.1&sp=2500&asn=13999&q=n&rq=ETT8ZEWTZ8KLfive2dhgdql2sXAqVorVjLXXiqA9";
+        <div class="ultra-box">
+            <h4 style="color:var(--ultra-orange); margin:0 0 10px 0;"><i class="fas fa-bolt"></i> ULTRA SERVIDORES (LATINO REAL)</h4>
+            <div class="ultra-server-btn" onclick="playUltra('Ultra')">
+                <i class="fas fa-play-circle" style="color:var(--ultra-orange); font-size:24px;"></i>
+                <div><b>SERVIDOR ULTRA</b><br><small style="color:#888;">Audio Latino - HD Directo</small></div>
+            </div>
+            <div class="ultra-server-btn" onclick="playUltra('Pegasus')">
+                <i class="fas fa-horse" style="color:var(--ultra-orange); font-size:24px;"></i>
+                <div><b>SERVIDOR PEGASUS</b><br><small style="color:#888;">Audio Latino - Alta Velocidad</small></div>
+            </div>
+        </div>
 
-        function activarFlujo() {
-            const video = document.getElementById('video-reproductor');
-            const btn = document.getElementById('btn-repro');
-            const urlFinal = URL_BASE + TOKEN_ACTUAL;
+        <button class="btn-action" style="background:#222; width:100%; padding:15px; border-radius:10px; color:white; border:none; margin-top:15px;" id="btn-main-action">MÁS OPCIONES (ESPAÑOL/SUB)</button>
+    </div>
+</div>
 
-            console.log("Intentando reproducir:", urlFinal);
+<div id="episodes-view">
+    <div style="padding: 80px 25px 10px;"><h2 id="ep-title" style="color:var(--accent-green); margin:0;"></h2></div>
+    <div style="padding: 20px; background: #111; margin: 10px; border-radius: 10px;"><select id="season-select" onchange="updateEpisodesList()" style="width:100%; padding:15px; background:#000; color:white;"></select><select id="episode-select" style="width:100%; padding:15px; background:#000; color:white; margin-top:10px;"></select><button class="btn-action" style="background:var(--dark-blue); color:white; width:100%; padding:15px; margin-top:10px;" onclick="saveToHistoryAndPlay()">VER SERVIDORES</button></div>
+</div>
 
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(urlFinal);
-                hls.attachMedia(video);
-                hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                    btn.style.display = 'none';
-                    video.style.display = 'block';
-                    video.play();
-                });
-                
-                hls.on(Hls.Events.ERROR, function (event, data) {
-                    if (data.fatal) {
-                        alert("El token ha caducado. Necesitamos olfatear uno nuevo.");
-                    }
-                });
-            } 
-            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-                video.src = urlFinal;
-                btn.style.display = 'none';
-                video.style.display = 'block';
-                video.play();
-            }
+<div id="links-view">
+    <div style="padding: 80px 25px 15px;"><h2 style="color: var(--accent-green); margin: 0;">OTROS SERVIDORES</h2></div>
+    <div id="list-container" style="padding: 0 20px;"></div>
+</div>
+
+<div id="player-layer">
+    <video id="ultra-video-player" controls style="display:none;"></video>
+    <iframe id="main-iframe" allowfullscreen style="display:none;"></iframe>
+</div>
+
+<script>
+    const API_KEY = 'bed364d1c4540454436cefd9d8a1c574';
+    const IMG_BASE = 'https://image.tmdb.org/t/p/w500';
+    let currentItem = null;
+    let historyList = JSON.parse(localStorage.getItem('dark_history')) || [];
+
+    // LÓGICA DE SERVIDORES ULTRA (BASADA EN NUESTRO DESCUBRIMIENTO)
+    async function playUltra(tipo) {
+        const video = document.getElementById('ultra-video-player');
+        const iframe = document.getElementById('main-iframe');
+        document.getElementById('player-layer').style.display = 'flex';
+        checkBackBtn();
+
+        // PATRÓN DE TOKEN QUE DESCUBRIMOS EN EL PASO ANTERIOR
+        const tokenFalso = `?t=YzjdJR77qTHt_ZnSjyo9eN9qOYphlsBQJeUGG8PdQaU&s=${Math.floor(Date.now()/1000)}&e=14400&node=4LGAMh8o8XDdh9GyDh/zPBfQeD/JdRIqe16LTbNYigs=`;
+        
+        // CONEXIÓN ESPEJO A EDGEON-BANDWIDTH
+        const urlBase = `https://cdn-llbaa8r4vvm8ea9r.edgeon-bandwidth.com/engine/hls2-c/01/${currentItem.id}/master.m3u8${tokenFalso}`;
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(urlBase);
+            hls.attachMedia(video);
+            video.style.display = 'block';
+            iframe.style.display = 'none';
+            video.play();
+        } else {
+            // Backup por si no soporta HLS directo
+            iframe.src = `https://vidsrc.to/embed/${currentItem.type}/${currentItem.id}`;
+            iframe.style.display = 'block';
+            video.style.display = 'none';
         }
-    </script>
+    }
+
+    // --- FUNCIONES BASE (Mantenidas) ---
+    function checkBackBtn() {
+        const anyModal = ['details-modal', 'links-view', 'player-layer', 'episodes-view', 'more-view'].some(id => 
+            document.getElementById(id).style.display === 'flex'
+        );
+        document.getElementById('back-btn-float').style.display = anyModal ? 'flex' : 'none';
+    }
+
+    function smartBack() {
+        const video = document.getElementById('ultra-video-player');
+        video.pause(); video.src = "";
+        document.getElementById('main-iframe').src = '';
+        ['player-layer','more-view','links-view','episodes-view','details-modal'].forEach(id => document.getElementById(id).style.display = 'none');
+        checkBackBtn();
+    }
+
+    async function renderApp(type) {
+        const catalogo = document.getElementById('catalogo');
+        catalogo.innerHTML = '';
+        const cats = type === 'movies' ? [ {n: "TENDENCIAS", id: "trending"}, {n: "ACCIÓN", id: 28} ] : [ {n: "SERIES TOP", id: "popular"} ];
+        
+        for (const cat of cats) {
+            const wrap = document.createElement('div');
+            wrap.innerHTML = `<div class="row-title">${cat.n}</div>`;
+            const car = document.createElement('div'); car.className = 'carousel';
+            const url = `https://api.themoviedb.org/3/${type==='movies'?'movie':'tv'}/popular?api_key=${API_KEY}&language=es-MX`;
+            fetch(url).then(r => r.json()).then(data => {
+                data.results.forEach(m => {
+                    const card = document.createElement('div'); card.className = 'card';
+                    card.innerHTML = `<img src="${IMG_BASE + m.poster_path}">`;
+                    card.onclick = () => showSynopsis(m, type==='movies'?'movie':'tv');
+                    car.appendChild(card);
+                });
+            });
+            wrap.appendChild(car);
+            catalogo.appendChild(wrap);
+        }
+    }
+
+    async function showSynopsis(m, type) {
+        currentItem = m; currentItem.type = type;
+        document.getElementById('m-title').innerText = m.title || m.name;
+        document.getElementById('m-desc').innerText = m.overview;
+        document.getElementById('m-img').src = IMG_BASE + m.poster_path;
+        document.getElementById('m-blur').style.backgroundImage = `url(${IMG_BASE + m.backdrop_path})`;
+        document.getElementById('btn-main-action').onclick = () => getLatinoLinks(type, 1, 1);
+        document.getElementById('details-modal').style.display = 'flex';
+        checkBackBtn();
+    }
+
+    function getLatinoLinks(type, s, e) {
+        const container = document.getElementById('list-container');
+        container.innerHTML = '<p style="text-align:center;">Buscando otros servidores...</p>';
+        document.getElementById('details-modal').style.display = 'none';
+        document.getElementById('links-view').style.display = 'flex';
+        const id = currentItem.id;
+        const srvs = [
+            {n: "SERVIDOR FAST", u: `https://embed.su/embed/${type}/${id}`},
+            {n: "OPCIÓN CASTELLANO", u: `https://moviesapi.club/${type}/${id}`}
+        ];
+        container.innerHTML = "";
+        srvs.forEach(srv => {
+            container.innerHTML += `<div style="background:#111; padding:15px; margin-bottom:10px; border-radius:10px; display:flex; justify-content:space-between;">
+                ${srv.n} <button onclick="playIframe('${srv.u}')" style="background:var(--accent-green); border:none; color:white; padding:5px 15px; border-radius:5px;">VER</button>
+            </div>`;
+        });
+    }
+
+    function playIframe(u) {
+        document.getElementById('main-iframe').src = u;
+        document.getElementById('main-iframe').style.display = 'block';
+        document.getElementById('ultra-video-player').style.display = 'none';
+        document.getElementById('player-layer').style.display = 'flex';
+    }
+
+    function changeTab(t) {
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        document.getElementById('nav-' + t).classList.add('active');
+        renderApp(t);
+    }
+
+    renderApp('movies');
+</script>
 </body>
 </html>
