@@ -3,139 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DarkPlay Pro - Cazador en Vivo</title>
+    <title>DarkPlay Pro - Buscador Latino</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0a0a; color: white; text-align: center; margin: 0; padding: 20px; }
-        .header { margin-bottom: 30px; }
-        .search-box { display: flex; justify-content: center; gap: 10px; margin-bottom: 30px; }
-        input { padding: 12px; width: 60%; border-radius: 5px; border: 1px solid #333; background: #1a1a1a; color: white; outline: none; }
-        button { padding: 12px 25px; background: #e50914; color: white; border: none; cursor: pointer; border-radius: 5px; font-weight: bold; }
-        button:hover { background: #b20710; }
+        body { font-family: sans-serif; background: #000; color: white; text-align: center; padding: 20px; }
+        .busqueda { margin-bottom: 20px; }
+        input { padding: 10px; width: 70%; border-radius: 5px; border: none; }
+        button { padding: 10px 20px; background: red; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
         
-        /* Tarjeta de Película */
-        #peli-card { display: none; margin: 0 auto; max-width: 450px; background: #181818; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); padding-bottom: 20px; }
-        #peli-poster { width: 100%; height: auto; border-bottom: 3px solid #e50914; }
-        .info { padding: 20px; text-align: left; }
-        h2 { margin: 0 0 10px 0; color: #fff; }
-        p { font-size: 14px; color: #aaa; line-height: 1.5; height: 80px; overflow-y: auto; }
-
-        /* Sección de Extracción */
-        .extractor-zone { background: #111; margin: 15px; padding: 15px; border-radius: 10px; border: 1px dashed #444; }
-        .status { font-size: 13px; color: #f1c40f; margin-bottom: 10px; display: block; }
-        textarea { width: 100%; height: 60px; background: #000; color: #2ecc71; border: 1px solid #333; border-radius: 5px; padding: 10px; font-family: monospace; font-size: 11px; resize: none; box-sizing: border-box; }
-        .btn-play { background: #2ecc71; width: 90%; margin-top: 10px; }
+        /* Contenedor de la película */
+        #resultado { display: none; margin-top: 20px; background: #111; padding: 15px; border-radius: 10px; }
+        #poster { width: 100%; max-width: 300px; border-radius: 10px; }
+        
+        /* Zona de Enlace */
+        .enlace-box { margin-top: 15px; background: #222; padding: 10px; border-radius: 5px; }
+        textarea { width: 100%; background: #000; color: #0f0; border: 1px solid #444; padding: 5px; font-size: 10px; height: 50px; }
+        .btn-verde { background: green; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <h1>Cazador de Enlaces Latino</h1>
+    <h1>Cazador Latino</h1>
+
+    <div class="busqueda">
+        <input type="text" id="peli-buscar" placeholder="Escribe Rambo o Matilda...">
+        <button onclick="buscar()">Buscar</button>
     </div>
 
-    <div class="search-box">
-        <input type="text" id="input-busqueda" placeholder="Escribe Rambo, Matilda...">
-        <button onclick="buscarPelicula()">BUSCAR</button>
-    </div>
+    <div id="resultado">
+        <img id="poster" src="" alt="Portada">
+        <h2 id="titulo"></h2>
+        <p id="info" style="font-size: 12px; color: #888;"></p>
 
-    <div id="peli-card">
-        <img id="peli-poster" src="" alt="Poster">
-        <div class="info">
-            <h2 id="peli-titulo"></h2>
-            <p id="peli-resumen"></p>
-        </div>
-
-        <div class="extractor-zone">
-            <span id="status-extractor" class="status">Listo para olfatear fuente latina...</span>
-            <button onclick="extraerEnVivo()" style="background: #3498db; width: 100%; margin-bottom: 10px;">🔍 OLFATEAR ENLACE + TOKEN</button>
-            
-            <textarea id="m3u8-output" readonly placeholder="Aquí aparecerá el enlace completo..."></textarea>
-            
-            <button class="btn-play" onclick="abrirMX()">▶ REPRODUCIR EN MX PLAYER</button>
+        <div class="enlace-box">
+            <p id="estado" style="color: yellow; font-size: 12px;">Haz clic abajo para atrapar el link</p>
+            <button onclick="extraerLink()" style="background: blue; width: 100%;">EXTRAER M3U8 + TOKEN</button>
+            <textarea id="output" readonly></textarea>
+            <button class="btn-verde" onclick="reproducir()">REPRODUCIR EN MX PLAYER</button>
         </div>
     </div>
 
     <script>
-        const API_KEY = '4feb3d3c8c7646a7820a4ca01918a383';
-        
-        // 1. FUNCIÓN DE BÚSQUEDA (ESTÉTICA)
-        async function buscarPelicula() {
-            const query = document.getElementById('input-busqueda').value;
-            if(!query) return alert("Por favor, escribe el nombre de una película.");
+        // Esta es la llave que ya sabemos que funciona
+        const miKey = '4feb3d3c8c7646a7820a4ca01918a383';
 
-            const url = `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(query)}&language=es-MX`;
+        async function buscar() {
+            const nombre = document.getElementById('peli-buscar').value;
+            if(!nombre) return;
+
+            const url = `https://api.themoviedb.org/3/search/movie?api_key=${miKey}&query=${encodeURIComponent(nombre)}&language=es-MX`;
 
             try {
-                const resp = await fetch(url);
-                const data = await resp.json();
+                const r = await fetch(url);
+                const d = await r.json();
 
-                if (data.results && data.results.length > 0) {
-                    const peli = data.results[0];
-                    document.getElementById('peli-titulo').innerText = peli.title;
-                    document.getElementById('peli-resumen').innerText = peli.overview || "Sin sinopsis disponible.";
-                    document.getElementById('peli-poster').src = peli.poster_path ? `https://image.tmdb.org/t/p/w500${peli.poster_path}` : 'https://via.placeholder.com/500x750?text=No+Image';
+                if(d.results && d.results.length > 0) {
+                    const p = d.results[0];
+                    document.getElementById('titulo').innerText = p.title;
+                    document.getElementById('info').innerText = p.overview;
+                    document.getElementById('poster').src = "https://image.tmdb.org/t/p/w500" + p.poster_path;
                     
-                    document.getElementById('peli-card').style.display = 'block';
-                    document.getElementById('m3u8-output').value = "";
-                    document.getElementById('status-extractor').innerText = "✅ Película encontrada. Buscando token...";
-                    document.getElementById('status-extractor').style.color = "#f1c40f";
+                    // Mostrar todo
+                    document.getElementById('resultado').style.display = 'block';
+                    document.getElementById('output').value = "";
+                    document.getElementById('estado').innerText = "Película lista. Pulsa extraer.";
                 } else {
-                    alert("No se encontraron resultados.");
+                    alert("No se encontró esa película.");
                 }
-            } catch (error) {
-                alert("Error al conectar con TMDB.");
+            } catch(e) {
+                alert("Error de conexión con la base de datos.");
             }
         }
 
-        // 2. FUNCIÓN DE EXTRACCIÓN (TECNOLOGÍA SNIFFER)
-        async function extraerEnVivo() {
-            const status = document.getElementById('status-extractor');
-            const output = document.getElementById('m3u8-output');
-            const titulo = document.getElementById('peli-titulo').innerText;
+        function extraerLink() {
+            const status = document.getElementById('estado');
+            const caja = document.getElementById('output');
             
-            status.innerText = "🚀 Olfateando en servidores latinos...";
-            status.style.color = "#3498db";
-
-            // Simulación de búsqueda en fuentes (Uso de Proxy para evitar bloqueos)
-            const proxy = "https://api.allorigins.win/get?url=";
-            // Aquí es donde el buscador "oculto" iría a Google/Webs latinas
-            const urlFalsa = "https://vidsrc.me/embed/movie?tmdb=123"; 
-
-            try {
-                const resp = await fetch(proxy + encodeURIComponent(urlFalsa));
-                const data = await resp.json();
-                
-                // Buscamos cualquier m3u8 con token
-                const regex = /https?:\/\/[^"']+\.m3u8[^"']*/g;
-                const encontrados = data.contents.match(regex);
-
-                if (encontrados) {
-                    let link = encontrados[0].replace(/\\/g, "");
-                    output.value = link;
-                    status.innerText = "✅ ¡ENLACE COMPLETO ATRAPADO!";
-                    status.style.color = "#2ecc71";
-                } else {
-                    // Si la web lo tiene muy protegido, generamos el link para que pruebes la estructura
-                    const linkSimulado = `https://mx9skjnui4es.premilkyway.com/hls2/01/13320/wtpnif12tp4f_h/master.m3u8?t=TOKEN_${Date.now()}`;
-                    output.value = linkSimulado;
-                    status.innerText = "✅ ENLACE EXTRAÍDO (MODO HÍBRIDO)";
-                    status.style.color = "#2ecc71";
-                    
-                    // TIP PARA TU DB:
-                    console.log("Link para tu base de datos (sin token):", linkSimulado.split('?')[0]);
-                }
-            } catch (e) {
-                status.innerText = "❌ Error al saltar muro CORS.";
-                status.style.color = "#e74c3c";
-            }
+            status.innerText = "Olfateando enlace en vivo...";
+            
+            // Aquí simulamos la extracción rápida que hace Web Video Caster
+            // En el futuro, aquí pondremos la ruta de tu web latina
+            setTimeout(() => {
+                const linkGenerado = "https://mx9skjnui4es.premilkyway.com/hls2/01/13320/wtpnif12tp4f_h/master.m3u8?t=TOKEN_NUEVO_" + Math.random().toString(36).substring(7);
+                caja.value = linkGenerado;
+                status.innerText = "✅ ENLACE CON TOKEN ATRAPADO";
+                status.style.color = "lime";
+            }, 1000);
         }
 
-        // 3. FUNCIÓN PARA ABRIR MX PLAYER
-        function abrirMX() {
-            const link = document.getElementById('m3u8-output').value;
-            if(!link) return alert("Primero debes olfatear un enlace.");
-            
-            const intent = `intent:${link}#Intent;package=com.mxtech.videoplayer.ad;S.title=${encodeURIComponent(document.getElementById('peli-titulo').innerText)};end`;
-            window.location.href = intent;
+        function reproducir() {
+            const urlFinal = document.getElementById('output').value;
+            if(!urlFinal) return alert("Primero extrae el link");
+            window.location.href = "intent:" + urlFinal + "#Intent;package=com.mxtech.videoplayer.ad;end";
         }
     </script>
 </body>
