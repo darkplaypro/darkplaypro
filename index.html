@@ -2,114 +2,252 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laboratorio de Conexión FA Plus</title>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PS Touch Pro - HSB Fixed</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; padding: 20px; }
-        .search-area { text-align: center; margin-bottom: 30px; }
-        input { padding: 15px; width: 80%; border-radius: 25px; border: none; font-size: 16px; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-        .movie-card { background: #111; border-radius: 10px; overflow: hidden; cursor: pointer; border: 1px solid #333; }
-        .movie-card img { width: 100%; height: 210px; object-fit: cover; }
-        .movie-card h3 { font-size: 12px; padding: 10px; margin: 0; text-align: center; }
+        body { margin: 0; background-color: #0e0e0e; color: white; font-family: sans-serif; overflow: hidden; height: 100vh; touch-action: none; -webkit-user-select: none; }
+        #pantalla-inicio { position: fixed; inset: 0; background: #0e0e0e; z-index: 5000; display: flex; flex-direction: column; padding: 40px; box-sizing: border-box; }
+        .titulo-proyectos { color: #007AFF; font-size: 24px; font-weight: 700; margin-bottom: 60px; }
+        .barra-empezar { background: #007AFF; color: white; width: 100%; max-width: 400px; padding: 18px; border-radius: 8px; text-align: center; font-weight: bold; align-self: center; margin-bottom: 40px; cursor: pointer; }
+        #header { height: 45px; background: #1f1f1f; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; z-index: 2000; }
+        .header-btn { color: #007AFF; font-weight: bold; font-size: 14px; }
+        #canvas-container { position: relative; width: 100vw; height: calc(100vh - 120px); background: #111; overflow: hidden; touch-action: none; }
         
-        /* Capa de Reproducción */
-        #player-box { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; z-index: 100; }
-        video { width: 100%; height: 60vh; background: #000; }
-        .controls { padding: 20px; text-align: center; }
-        .btn-test { background: #2ecc71; color: white; border: none; padding: 15px 30px; border-radius: 10px; font-weight: bold; margin: 5px; }
-        .back-btn { background: #e74c3c; color: white; border: none; padding: 10px; width: 100%; }
+        /* CAPAS */
+        #contenedor-capas-derecha { position: absolute; bottom: 2px; left: 83.33%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; gap: 4px; z-index: 1500; }
+        #lista-capas-vertical { width: 58px; max-height: 50vh; background: rgba(20, 20, 20, 0.98); border: 1px solid #444; border-radius: 8px; display: flex; flex-direction: column-reverse; align-items: center; padding: 6px 0; gap: 6px; overflow-y: auto; }
+        .miniatura-capa { width: 42px; height: 42px; border: 2px solid #333; border-radius: 4px; background: #000; overflow: hidden; flex-shrink: 0; }
+        .miniatura-capa.activa { border-color: #007AFF; }
+        .miniatura-capa img { width: 100%; height: 100%; object-fit: contain; }
+        #menu-capas-acciones { display: flex; gap: 6px; background: #1a1a1a; padding: 5px; border-radius: 8px; border: 1px solid #333; }
+        .btn-add { width: 40px; height: 40px; background: #252525; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+
+        /* COLOR */
+        #selector-color-visual { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 350px; background: #222; border: 1px solid #444; border-radius: 8px; display: none; flex-direction: column; z-index: 3000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .color-body { display: flex; padding: 10px; gap: 10px; height: 210px; }
+        .panel-contenido { flex-grow: 1; display: none; }
+        .panel-contenido.active { display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+        #panel-grid { grid-template-columns: repeat(5, 1fr); gap: 5px; overflow-y: auto; }
+        .color-sugerencia { width: 100%; height: 32px; border-radius: 3px; border: 1px solid #111; }
+        .slider-row { display: flex; flex-direction: column; gap: 2px; font-size: 10px; color: #eee; }
+        input[type=range] { -webkit-appearance: none; width: 100%; height: 14px; border-radius: 7px; border: 1px solid #444; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: #fff; border: 2px solid #007AFF; border-radius: 50%; }
+
+        /* Gradientes sliders */
+        #h-in { background: linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red); }
+        #r-in { background: linear-gradient(to right, #000, #ff0000); }
+        #g-in { background: linear-gradient(to right, #000, #00ff00); }
+        #bl-in { background: linear-gradient(to right, #000, #0000ff); }
+
+        .pestañas-laterales { width: 55px; display: flex; flex-direction: column; gap: 4px; }
+        .tab { background: #333; border: none; height: 38px; border-radius: 4px; color: white; font-size: 9px; font-weight: bold; opacity: 0.5; }
+        .tab.active { background: #007AFF; opacity: 1; }
+        .color-footer { display: flex; padding: 12px; background: #1a1a1a; gap: 10px; align-items: center; border-top: 1px solid #333; border-radius: 0 0 8px 8px; }
+        .preview-main { width: 50px; height: 35px; border: 2px solid white; border-radius: 3px; }
+        .btn-eyedropper { background: none; border: none; padding: 5px; margin-left: auto; cursor: pointer; }
+        .btn-eyedropper svg { width: 24px; fill: #ccc; }
+        #lupa-color { position: fixed; width: 80px; height: 80px; border: 4px solid white; border-radius: 50%; z-index: 6000; display: none; pointer-events: none; transform: translate(-50%, -120%); box-shadow: 0 0 20px rgba(0,0,0,0.8); }
+
+        /* UI */
+        #ui-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 75px; background: #1f1f1f; display: flex; align-items: center; justify-content: space-around; border-top: 1px solid #333; z-index: 1000; }
+        .tool { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #888; font-size: 10px; width: 33.3%; }
+        .tool svg { width: 26px; fill: #ccc; }
+        .tool.active svg { fill: #007AFF; }
     </style>
 </head>
 <body>
 
-<div class="search-area">
-    <h2>PROBADOR DE BASE DE DATOS FA PLUS</h2>
-    <input type="text" id="query" placeholder="Busca una peli (ej: La hora de los valientes)" onkeyup="buscarTMDB()">
-</div>
+    <div id="lupa-color"></div>
 
-<div id="resultados" class="grid"></div>
-
-<div id="player-box">
-    <button class="back-btn" onclick="cerrarPlayer()">✖ CERRAR Y VOLVER AL BUSCADOR</button>
-    <video id="video-tester" controls></video>
-    <div class="controls">
-        <h2 id="test-title"></h2>
-        <p id="test-status" style="color: #2ecc71;">Estado: Esperando Servidor...</p>
-        <button class="btn-test" onclick="conectarFAPlus('Ultra')">PROBAR SERVIDOR ULTRA</button>
-        <button class="btn-test" onclick="conectarFAPlus('Pegasus')">PROBAR SERVIDOR PEGASUS</button>
+    <div id="pantalla-inicio">
+        <div class="titulo-proyectos">PROYECTOS</div>
+        <div class="barra-empezar" onclick="initApp(1000, 1000)">EMPEZAR PROYECTO</div>
     </div>
-</div>
 
-<script>
-    const KEY = 'bed364d1c4540454436cefd9d8a1c574';
-    let peliSeleccionada = null;
+    <div id="header">
+        <span onclick="location.reload()" class="header-btn">INICIO</span>
+        <span class="header-btn">GUARDAR</span>
+    </div>
 
-    async function buscarTMDB() {
-        const q = document.getElementById('query').value;
-        if(q.length < 3) return;
-        const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${KEY}&language=es-MX&query=${q}`);
-        const data = await res.json();
-        const container = document.getElementById('resultados');
-        container.innerHTML = "";
-        data.results.forEach(m => {
-            if(!m.poster_path) return;
-            const div = document.createElement('div');
-            div.className = 'movie-card';
-            div.innerHTML = `<img src="https://image.tmdb.org/t/p/w500${m.poster_path}"><h3>${m.title}</h3>`;
-            div.onclick = () => abrirTester(m);
-            container.appendChild(div);
-        });
-    }
+    <div id="canvas-container">
+        <canvas id="main-canvas"></canvas>
+        <div id="contenedor-capas-derecha">
+            <div id="lista-capas-vertical"></div>
+            <div id="menu-capas-acciones">
+                <div class="btn-add" onclick="toggleMiniaturas()"><svg style="width:22px;fill:#ccc" viewBox="0 0 24 24"><path d="M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.81L12,18.54Z"/></svg></div>
+                <div class="btn-add" onclick="document.getElementById('f').click()"><svg style="width:22px;fill:#007AFF" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+            </div>
+        </div>
 
-    function abrirTester(m) {
-        peliSeleccionada = m;
-        document.getElementById('test-title').innerText = m.title;
-        document.getElementById('player-box').style.display = 'flex';
-    }
+        <div id="selector-color-visual">
+            <div class="color-body">
+                <canvas id="canvas-espectro" width="220" height="180" class="panel-contenido active"></canvas>
+                <div id="panel-grid" class="panel-contenido">
+                    <div class="color-sugerencia" style="background:#000000" onclick="setCol('#000000')"></div>
+                    <div class="color-sugerencia" style="background:#333333" onclick="setCol('#333333')"></div>
+                    <div class="color-sugerencia" style="background:#666666" onclick="setCol('#666666')"></div>
+                    <div class="color-sugerencia" style="background:#ffffff" onclick="setCol('#ffffff')"></div>
+                    <div class="color-sugerencia" style="background:#ff0000" onclick="setCol('#ff0000')"></div>
+                    <div class="color-sugerencia" style="background:#ff7f00" onclick="setCol('#ff7f00')"></div>
+                    <div class="color-sugerencia" style="background:#ffff00" onclick="setCol('#ffff00')"></div>
+                    <div class="color-sugerencia" style="background:#00ff00" onclick="setCol('#00ff00')"></div>
+                    <div class="color-sugerencia" style="background:#0000ff" onclick="setCol('#0000ff')"></div>
+                    <div class="color-sugerencia" style="background:#8b00ff" onclick="setCol('#8b00ff')"></div>
+                    <div class="color-sugerencia" style="background:#ffdbac" onclick="setCol('#ffdbac')"></div>
+                    <div class="color-sugerencia" style="background:#f1c27d" onclick="setCol('#f1c27d')"></div>
+                    <div class="color-sugerencia" style="background:#e0ac69" onclick="setCol('#e0ac69')"></div>
+                    <div class="color-sugerencia" style="background:#8d5524" onclick="setCol('#8d5524')"></div>
+                    <div class="color-sugerencia" style="background:#007aff" onclick="setCol('#007aff')"></div>
+                </div>
+                <div id="panel-hsb" class="panel-contenido">
+                    <div class="slider-row">H <input type="range" min="0" max="360" id="h-in" value="200" oninput="updateHSB()"></div>
+                    <div class="slider-row">S <input type="range" min="0" max="100" id="s-in" value="100" oninput="updateHSB()"></div>
+                    <div class="slider-row">B <input type="range" min="0" max="100" id="b-in" value="100" oninput="updateHSB()"></div>
+                </div>
+                <div id="panel-rgb" class="panel-contenido">
+                    <div class="slider-row">R <input type="range" min="0" max="255" id="r-in" value="0" oninput="updateRGB()"></div>
+                    <div class="slider-row">G <input type="range" min="0" max="255" id="g-in" value="122" oninput="updateRGB()"></div>
+                    <div class="slider-row">B <input type="range" min="0" max="255" id="bl-in" value="255" oninput="updateRGB()"></div>
+                </div>
+                <div class="pestañas-laterales">
+                    <button class="tab active" onclick="switchTab('canvas-espectro')">VIS</button>
+                    <button class="tab" onclick="switchTab('panel-grid')">GRID</button>
+                    <button class="tab" onclick="switchTab('panel-hsb')">HSB</button>
+                    <button class="tab" onclick="switchTab('panel-rgb')">RGB</button>
+                </div>
+            </div>
+            <div class="color-footer">
+                <div id="c-main" class="preview-main" style="background: #007AFF;"></div>
+                <button class="btn-eyedropper" id="btn-drop"><svg viewBox="0 0 24 24"><path d="M19.35,11.72L17.22,13.85L15.81,12.44L11.56,16.69L11.56,19.52L10.15,20.93L7.32,18.1L2.37,23.05L1,21.68L5.95,16.73L3.12,13.9L4.53,12.49L7.36,12.49L11.61,8.24L10.2,6.83L12.33,4.7L19.35,11.72M21.47,4.7C22.17,5.4 22.17,6.54 21.47,7.24L20.06,8.65L15.4,4L16.81,2.58C17.5,1.89 18.64,1.89 19.35,2.58L21.47,4.7Z"/></svg></button>
+                <button onclick="toggleColor()" style="background:none; border:none; color:#007AFF; font-weight:bold; font-size:16px;">OK</button>
+            </div>
+        </div>
+    </div>
 
-    function conectarFAPlus(tipo) {
-        const status = document.getElementById('test-status');
-        const video = document.getElementById('video-tester');
-        status.innerText = `Conectando a ${tipo}... solicitando llave dinámica`;
+    <div id="ui-bottom">
+        <button class="tool" id="btn-brush" onclick="toggleBrush()"><svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.88,8.88M3,17.25V21H6.75L17.81,9.93L14.07,6.19L3,17.25Z"/></svg>Pincel</button>
+        <button class="tool" onclick="toggleColor()"><svg viewBox="0 0 24 24"><path d="M12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 12,4"/></svg>Color</button>
+        <button class="tool" onclick="toggleLayerMenu()"><svg style="width:30px" viewBox="0 0 24 24"><path d="M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.81L12,18.54Z"/></svg>Capas</button>
+    </div>
 
-        // REPLICACIÓN DEL TOKEN DE TUS CAPTURAS
-        // Usamos el ID de TMDB para apuntar al servidor de Edgeon
-        const id = peliSeleccionada.id;
-        const time = Math.floor(Date.now() / 1000);
-        
-        // Esta es la estructura que vimos en tu tráfico de red
-        let streamURL = (tipo === 'Ultra') 
-            ? `https://cdn-llbaa8r4vvm8ea9r.edgeon-bandwidth.com/engine/hls2-c/01/${id}/master.m3u8?t=YzjdJR77qTHt_ZnSjyo9eN9q&s=${time}&e=14400`
-            : `https://x8oi6owwkjoewr.premilkyway.com/engine/hls2-c/01/${id}/master.m3u8`;
+    <input type="file" id="f" style="display:none">
 
-        if (Hls.isSupported()) {
-            const hls = new Hls({
-                xhrSetup: function(xhr) {
-                    // Engañamos al servidor con el Referer de FA Plus
-                    xhr.setRequestHeader('Referer', 'https://ghbrisk.com/');
+    <script>
+        let canvas, color = '#007AFF', isDropping = false;
+        let pointers = [], lastDist = 0;
+
+        function initApp(w, h) {
+            document.getElementById('pantalla-inicio').style.display = 'none';
+            canvas = new fabric.Canvas('main-canvas', { width: window.innerWidth, height: window.innerHeight - 120, backgroundColor: '#111', selection: false });
+            const base = new fabric.Rect({ width: w*0.4, height: h*0.4, fill: 'white', selectable: false, name: 'base' });
+            canvas.add(base); canvas.centerObject(base);
+            renderSpectrum(); initDropper(); initPinchZoomNativo();
+        }
+
+        function initPinchZoomNativo() {
+            const el = canvas.upperCanvasEl;
+            el.addEventListener('pointerdown', e => { pointers.push(e); if (pointers.length === 2) { canvas.isDrawingMode = false; lastDist = getDist(pointers[0], pointers[1]); } });
+            el.addEventListener('pointermove', e => {
+                for (let i = 0; i < pointers.length; i++) { if (pointers[i].pointerId === e.pointerId) { pointers[i] = e; break; } }
+                if (pointers.length === 2) {
+                    canvas.isDrawingMode = false;
+                    const currentDist = getDist(pointers[0], pointers[1]);
+                    const zoom = canvas.getZoom() * (currentDist / lastDist);
+                    const midX = (pointers[0].clientX + pointers[1].clientX) / 2;
+                    const midY = (pointers[0].clientY + pointers[1].clientY) / 2 - 45;
+                    canvas.zoomToPoint({ x: midX, y: midY }, Math.min(Math.max(0.05, zoom), 20));
+                    lastDist = currentDist;
                 }
             });
-            hls.loadSource(streamURL);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                status.innerText = "¡CONEXIÓN EXITOSA! Reproduciendo Latino...";
-                video.play();
+            el.addEventListener('pointerup', e => { pointers = pointers.filter(p => p.pointerId !== e.pointerId); if (pointers.length < 2) lastDist = 0; });
+            el.addEventListener('pointercancel', () => { pointers = []; lastDist = 0; });
+        }
+        function getDist(p1, p2) { return Math.sqrt(Math.pow(p2.clientX - p1.clientX, 2) + Math.pow(p2.clientY - p1.clientY, 2)); }
+
+        function initDropper() {
+            const btn = document.getElementById('btn-drop'), lupa = document.getElementById('lupa-color'), panel = document.getElementById('selector-color-visual');
+            btn.addEventListener('touchstart', (e) => { isDropping = true; lupa.style.display = "block"; panel.style.display = "none"; e.preventDefault(); });
+            window.addEventListener('touchmove', (e) => {
+                if (!isDropping) return;
+                const t = e.touches[0]; lupa.style.left = t.clientX + "px"; lupa.style.top = t.clientY + "px";
+                const p = canvas.getPointer(t); const pix = canvas.getContext('2d').getImageData(p.x, p.y, 1, 1).data;
+                const c = `rgb(${pix[0]},${pix[1]},${pix[2]})`; lupa.style.backgroundColor = c; setCol(c);
             });
-            hls.on(Hls.Events.ERROR, () => {
-                status.innerText = "Error: Token Rechazado. Reintentando con Pegasus...";
-                status.style.color = "red";
+            window.addEventListener('touchend', () => { if(isDropping) { isDropping = false; lupa.style.display = "none"; panel.style.display = "flex"; } });
+        }
+
+        function renderSpectrum() {
+            const c = document.getElementById('canvas-espectro');
+            const ctx = c.getContext('2d', { willReadFrequently: true });
+            const g = ctx.createLinearGradient(0, 0, c.width, 0);
+            g.addColorStop(0,"red"); g.addColorStop(0.2,"yellow"); g.addColorStop(0.4,"green"); g.addColorStop(0.6,"cyan"); g.addColorStop(0.8,"blue"); g.addColorStop(1,"red");
+            ctx.fillStyle = g; ctx.fillRect(0,0,c.width,c.height);
+            const v = ctx.createLinearGradient(0, 0, 0, c.height);
+            v.addColorStop(0, "white"); v.addColorStop(0.5, "transparent"); v.addColorStop(1, "black");
+            ctx.fillStyle = v; ctx.fillRect(0,0,c.width,c.height);
+            c.addEventListener('touchstart', (e) => pickColor(e, c, ctx));
+            c.addEventListener('touchmove', (e) => pickColor(e, c, ctx));
+        }
+        function pickColor(e, c, ctx) {
+            const r = c.getBoundingClientRect();
+            const d = ctx.getImageData(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top, 1, 1).data;
+            setCol(`rgb(${d[0]},${d[1]},${d[2]})`);
+        }
+
+        function setCol(c) {
+            color = c;
+            document.getElementById('c-main').style.backgroundColor = c;
+            if(canvas && canvas.isDrawingMode) canvas.freeDrawingBrush.color = c;
+        }
+
+        function switchTab(id) {
+            document.querySelectorAll('.panel-contenido').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const active = document.getElementById(id); active.classList.add('active');
+            active.style.display = id === 'panel-grid' ? 'grid' : 'flex';
+            event.currentTarget.classList.add('active');
+        }
+
+        // --- CORRECCIÓN HSB DINÁMICO ---
+        function updateHSB() {
+            const h = document.getElementById('h-in').value;
+            const s = document.getElementById('s-in').value;
+            const b = document.getElementById('b-in').value;
+            
+            // Actualizar fondos de barras S y B basados en H
+            document.getElementById('s-in').style.background = `linear-gradient(to right, #808080, hsl(${h}, 100%, 50%))`;
+            document.getElementById('b-in').style.background = `linear-gradient(to right, #000, hsl(${h}, 100%, 50%))`;
+            
+            setCol(`hsl(${h}, ${s}%, ${b/2}%)`);
+        }
+
+        function updateRGB() {
+            const r = document.getElementById('r-in').value, g = document.getElementById('g-in').value, bl = document.getElementById('bl-in').value;
+            setCol(`rgb(${r},${g},${bl})`);
+        }
+
+        function toggleColor() { const s = document.getElementById('selector-color-visual'); s.style.display = s.style.display === 'flex' ? 'none' : 'flex'; }
+        function toggleLayerMenu() { const c = document.getElementById('contenedor-capas-derecha'); c.style.display = c.style.display === 'flex' ? 'none' : 'flex'; if(c.style.display === 'flex') updateLayers(); }
+        function toggleMiniaturas() { const l = document.getElementById('lista-capas-vertical'); l.style.display = l.style.display === 'none' ? 'flex' : 'none'; }
+        
+        function updateLayers() {
+            const p = document.getElementById('lista-capas-vertical'); p.innerHTML = '';
+            canvas.getObjects().filter(o => o.name !== 'base').forEach(obj => {
+                const d = document.createElement('div');
+                d.className = 'miniatura-capa' + (canvas.getActiveObject() === obj ? ' activa' : '');
+                const img = document.createElement('img');
+                img.src = obj.toDataURL({format:'png', quality:0.1});
+                d.onclick = () => { canvas.setActiveObject(obj); canvas.renderAll(); updateLayers(); };
+                d.appendChild(img); p.appendChild(d);
             });
         }
-    }
-
-    function cerrarPlayer() {
-        const video = document.getElementById('video-tester');
-        video.pause();
-        video.src = "";
-        document.getElementById('player-box').style.display = 'none';
-    }
-</script>
+        document.getElementById('f').onchange = (e) => {
+            const r = new FileReader();
+            r.onload = (f) => { fabric.Image.fromURL(f.target.result, (img) => { img.scaleToWidth(150); canvas.add(img); canvas.centerObject(img); canvas.renderAll(); updateLayers(); }); };
+            r.readAsDataURL(e.target.files[0]);
+        };
+        function toggleBrush() { canvas.isDrawingMode = !canvas.isDrawingMode; document.getElementById('btn-brush').classList.toggle('active'); }
+    </script>
 </body>
 </html>
