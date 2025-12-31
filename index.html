@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PS Touch Pro - Grid Restored</title>
+    <title>PS Touch Pro - Restaurado y Mejorado</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         body { margin: 0; background-color: #0e0e0e; color: white; font-family: sans-serif; overflow: hidden; height: 100vh; touch-action: none; -webkit-user-select: none; }
@@ -17,17 +17,19 @@
         /* CAPAS */
         #contenedor-capas-derecha { position: absolute; bottom: 2px; left: 83.33%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; gap: 4px; z-index: 1500; }
         #lista-capas-vertical { width: 58px; max-height: 50vh; background: rgba(20, 20, 20, 0.98); border: 1px solid #444; border-radius: 8px; display: flex; flex-direction: column-reverse; align-items: center; padding: 6px 0; gap: 6px; overflow-y: auto; }
-        .miniatura-capa { width: 42px; height: 42px; border: 2px solid #333; border-radius: 4px; background: #000; overflow: hidden; flex-shrink: 0; }
+        .miniatura-capa { width: 42px; height: 42px; border: 2px solid #333; border-radius: 4px; background: #000; overflow: hidden; flex-shrink: 0; transition: transform 0.1s; }
         .miniatura-capa.activa { border-color: #007AFF; }
-        .miniatura-capa img { width: 100%; height: 100%; object-fit: contain; }
+        .miniatura-capa.levantada { transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 122, 255, 0.8); border-color: #fff; z-index: 10; opacity: 0.8; }
+        .miniatura-capa img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
         #menu-capas-acciones { display: flex; gap: 6px; background: #1a1a1a; padding: 5px; border-radius: 8px; border: 1px solid #333; }
         .btn-add { width: 40px; height: 40px; background: #252525; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
 
-        /* AJUSTES PINCEL */
-        #panel-pincel-ajustes { position: absolute; bottom: 85px; left: 15px; width: 140px; background: #222; border: 1px solid #444; border-radius: 8px; display: none; flex-direction: column; padding: 12px; z-index: 3000; }
-        .brush-preview-circle { width: 40px; height: 40px; background: white; border-radius: 50%; margin: 0 auto 10px; border: 1px solid #555; }
+        /* MENU PROPIEDADES CAPA */
+        #menu-propiedades-capa { position: absolute; bottom: 85px; right: 70px; width: 180px; background: #1a1a1a; border: 1px solid #444; border-radius: 8px; display: none; flex-direction: column; padding: 12px; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+        .prop-label { font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; }
+        #select-fusion { background: #333; color: white; border: 1px solid #555; border-radius: 4px; padding: 5px; font-size: 12px; margin-top: 10px; outline: none; }
 
-        /* COLOR */
+        /* PANEL COLOR */
         #selector-color-visual { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 350px; background: #222; border: 1px solid #444; border-radius: 8px; display: none; flex-direction: column; z-index: 3000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         .color-body { display: flex; padding: 10px; gap: 10px; height: 210px; }
         .panel-contenido { flex-grow: 1; display: none; }
@@ -35,10 +37,11 @@
         #panel-grid { grid-template-columns: repeat(5, 1fr); gap: 5px; overflow-y: auto; }
         .color-sugerencia { width: 100%; height: 32px; border-radius: 3px; border: 1px solid #111; }
         .slider-row { display: flex; flex-direction: column; gap: 2px; font-size: 10px; color: #eee; }
+        
+        /* SLIDERS CON GRADIENTES */
         input[type=range] { -webkit-appearance: none; width: 100%; height: 14px; border-radius: 7px; border: 1px solid #444; outline: none; }
         input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: #fff; border: 2px solid #007AFF; border-radius: 50%; }
 
-        /* Gradientes sliders */
         #h-in { background: linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red); }
         #r-in { background: linear-gradient(to right, #000, #ff0000); }
         #g-in { background: linear-gradient(to right, #000, #00ff00); }
@@ -51,19 +54,17 @@
         .preview-main { width: 50px; height: 35px; border: 2px solid white; border-radius: 3px; }
         .btn-eyedropper { background: none; border: none; padding: 5px; margin-left: auto; cursor: pointer; }
         .btn-eyedropper svg { width: 24px; fill: #ccc; }
-        #lupa-color { position: fixed; width: 80px; height: 80px; border: 4px solid white; border-radius: 50%; z-index: 6000; display: none; pointer-events: none; transform: translate(-50%, -120%); box-shadow: 0 0 20px rgba(0,0,0,0.8); }
 
-        /* UI */
+        #lupa-color { position: fixed; width: 70px; height: 70px; border: 3px solid white; border-radius: 4px; z-index: 6000; display: none; pointer-events: none; transform: translate(-50%, -120%); box-shadow: 0 0 15px rgba(0,0,0,0.6); }
+
         #ui-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 75px; background: #1f1f1f; display: flex; align-items: center; justify-content: space-around; border-top: 1px solid #333; z-index: 1000; }
-        .tool { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #888; font-size: 10px; width: 33.3%; }
+        .tool { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #888; font-size: 10px; width: 50%; }
         .tool svg { width: 26px; fill: #ccc; }
-        .tool.active svg { fill: #007AFF; }
     </style>
 </head>
 <body>
 
     <div id="lupa-color"></div>
-
     <div id="pantalla-inicio">
         <div class="titulo-proyectos">PROYECTOS</div>
         <div class="barra-empezar" onclick="initApp(1000, 1000)">EMPEZAR PROYECTO</div>
@@ -77,16 +78,28 @@
     <div id="canvas-container">
         <canvas id="main-canvas"></canvas>
 
-        <div id="panel-pincel-ajustes">
-            <div id="preview-pincel" class="brush-preview-circle"></div>
-            <div class="slider-row">Size <input type="range" id="b-size" min="1" max="100" value="20" oninput="applyBrush()"></div>
-            <div class="slider-row" style="margin-top:8px">Opac <input type="range" id="b-opac" min="1" max="100" value="100" oninput="applyBrush()"></div>
+        <div id="menu-propiedades-capa">
+            <div class="prop-label">Opacidad</div>
+            <input type="range" min="0" max="100" value="100" id="opacidad-input" oninput="cambiarOpacidadCapas(this.value)">
+            <div class="prop-label" style="margin-top:15px">Modo de Fusión</div>
+            <select id="select-fusion" onchange="cambiarFusionCapas(this.value)">
+                <option value="normal">Normal</option>
+                <option value="multiply">Multiplicar</option>
+                <option value="screen">Trama (Screen)</option>
+                <option value="overlay">Superponer</option>
+                <option value="darken">Oscurecer</option>
+                <option value="lighten">Aclarar</option>
+                <option value="color-dodge">Sobreexponer color</option>
+                <option value="color-burn">Subexponer color</option>
+                <option value="hard-light">Luz fuerte</option>
+                <option value="soft-light">Luz suave</option>
+            </select>
         </div>
 
         <div id="contenedor-capas-derecha">
             <div id="lista-capas-vertical"></div>
             <div id="menu-capas-acciones">
-                <div class="btn-add" onclick="toggleMiniaturas()"><svg style="width:22px;fill:#ccc" viewBox="0 0 24 24"><path d="M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.81L12,18.54Z"/></svg></div>
+                <div class="btn-add" onclick="togglePropiedadesCapa()"><svg style="width:22px;fill:#ccc" viewBox="0 0 24 24"><path d="M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.81L12,18.54Z"/></svg></div>
                 <div class="btn-add" onclick="document.getElementById('f').click()"><svg style="width:22px;fill:#007AFF" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
             </div>
         </div>
@@ -137,78 +150,119 @@
     </div>
 
     <div id="ui-bottom">
-        <button class="tool" id="btn-brush" onclick="toggleBrush()"><svg viewBox="0 0 24 24"><path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.88,8.88M3,17.25V21H6.75L17.81,9.93L14.07,6.19L3,17.25Z"/></svg>Pincel</button>
         <button class="tool" onclick="toggleColor()"><svg viewBox="0 0 24 24"><path d="M12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 12,4"/></svg>Color</button>
         <button class="tool" onclick="toggleLayerMenu()"><svg style="width:30px" viewBox="0 0 24 24"><path d="M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.81L12,18.54Z"/></svg>Capas</button>
     </div>
 
-    <input type="file" id="f" style="display:none">
+    <input type="file" id="f" style="display:none" accept="image/*">
 
     <script>
-        let canvas, color = '#007AFF', isDropping = false;
-        let pointers = [], lastDist = 0;
+        let canvas, color = '#007AFF', isDropping = false, pointers = [], lastDist = 0, touchTarget = null;
 
         function initApp(w, h) {
             document.getElementById('pantalla-inicio').style.display = 'none';
-            canvas = new fabric.Canvas('main-canvas', { width: window.innerWidth, height: window.innerHeight - 120, backgroundColor: '#111', selection: false });
+            canvas = new fabric.Canvas('main-canvas', { width: window.innerWidth, height: window.innerHeight - 120, backgroundColor: '#111', selection: true, preserveObjectStacking: true });
+            
+            fabric.Object.prototype.set({
+                transparentCorners: false,
+                cornerColor: '#ffffff',
+                cornerStrokeColor: '#007AFF',
+                borderColor: '#007AFF',
+                cornerSize: 12,
+                padding: 10,
+                cornerStyle: 'circle',
+                borderDashArray: [3, 3]
+            });
+
             const base = new fabric.Rect({ width: w*0.4, height: h*0.4, fill: 'white', selectable: false, name: 'base' });
             canvas.add(base); canvas.centerObject(base);
-            renderSpectrum(); initDropper(); initPinchZoomNativo();
-        }
-
-        function toggleBrush() {
-            canvas.isDrawingMode = !canvas.isDrawingMode;
-            document.getElementById('btn-brush').classList.toggle('active');
-            document.getElementById('panel-pincel-ajustes').style.display = canvas.isDrawingMode ? 'flex' : 'none';
-            if(canvas.isDrawingMode) applyBrush();
-        }
-
-        function applyBrush() {
-            if(!canvas) return;
-            const size = document.getElementById('b-size').value;
-            const opac = document.getElementById('b-opac').value / 100;
-            canvas.freeDrawingBrush.width = parseInt(size);
-            canvas.freeDrawingBrush.color = hexToRgba(color, opac);
             
-            const prev = document.getElementById('preview-pincel');
-            prev.style.width = size + "px"; prev.style.height = size + "px";
-            prev.style.backgroundColor = color; prev.style.opacity = opac;
+            canvas.on('selection:created', () => { updateLayers(); sincronizarPanelPropiedades(); });
+            canvas.on('selection:updated', () => { updateLayers(); sincronizarPanelPropiedades(); });
+            canvas.on('selection:cleared', () => { document.getElementById('menu-propiedades-capa').style.display = 'none'; });
+            canvas.on('object:modified', () => updateLayers());
+
+            renderSpectrum(); initDropper(); initPinchZoomNativo(); updateHSB();
         }
 
-        function hexToRgba(hex, a) {
-            let r=0, g=0, b=0;
-            if(hex.startsWith('rgb')) { const m = hex.match(/\d+/g); r=m[0]; g=m[1]; b=m[2]; }
-            else { r=parseInt(hex.slice(1,3),16); g=parseInt(hex.slice(3,5),16); b=parseInt(hex.slice(5,7),16); }
-            return `rgba(${r},${g},${b},${a})`;
+        function togglePropiedadesCapa() {
+            const menu = document.getElementById('menu-propiedades-capa');
+            const activeObj = canvas.getActiveObject();
+            if (!activeObj) { alert("Selecciona una capa primero"); return; }
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
         }
 
-        function initPinchZoomNativo() {
-            const el = canvas.upperCanvasEl;
-            el.addEventListener('pointerdown', e => { pointers.push(e); if (pointers.length === 2) { canvas.isDrawingMode = false; lastDist = getDist(pointers[0], pointers[1]); } });
-            el.addEventListener('pointermove', e => {
-                for (let i = 0; i < pointers.length; i++) { if (pointers[i].pointerId === e.pointerId) { pointers[i] = e; break; } }
-                if (pointers.length === 2) {
-                    canvas.isDrawingMode = false;
-                    const currentDist = getDist(pointers[0], pointers[1]);
-                    const zoom = canvas.getZoom() * (currentDist / lastDist);
-                    canvas.zoomToPoint({ x: (pointers[0].clientX + pointers[1].clientX) / 2, y: (pointers[0].clientY + pointers[1].clientY) / 2 - 45 }, Math.min(Math.max(0.05, zoom), 20));
-                    lastDist = currentDist;
-                }
+        function sincronizarPanelPropiedades() {
+            const obj = canvas.getActiveObject();
+            if (obj) {
+                document.getElementById('opacidad-input').value = obj.opacity * 100;
+                document.getElementById('select-fusion').value = obj.globalCompositeOperation || 'normal';
+            }
+        }
+
+        function cambiarOpacidadCapas(v) {
+            const obj = canvas.getActiveObject();
+            if (obj) { obj.set('opacity', v / 100); canvas.renderAll(); }
+        }
+
+        function cambiarFusionCapas(v) {
+            const obj = canvas.getActiveObject();
+            if (obj) { obj.set('globalCompositeOperation', v); canvas.renderAll(); }
+        }
+
+        function updateLayers() {
+            const p = document.getElementById('lista-capas-vertical');
+            if(!p || touchTarget) return; 
+            p.innerHTML = '';
+            const objects = canvas.getObjects().filter(o => o.name !== 'base');
+            
+            objects.forEach((obj) => {
+                const d = document.createElement('div');
+                d.className = 'miniatura-capa' + (canvas.getActiveObject() === obj ? ' activa' : '');
+                const img = document.createElement('img');
+                img.src = obj.toDataURL({format:'png', quality:0.1});
+                d.appendChild(img);
+
+                d.addEventListener('touchstart', () => {
+                    touchTarget = d; d.classList.add('levantada');
+                    canvas.setActiveObject(obj); canvas.renderAll();
+                }, {passive: true});
+
+                d.addEventListener('touchmove', (e) => {
+                    if (!touchTarget) return;
+                    const touch = e.touches[0];
+                    const dest = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.miniatura-capa');
+                    if (dest && dest !== touchTarget) {
+                        const allNodes = Array.from(p.children);
+                        const currentIndex = allNodes.indexOf(touchTarget);
+                        const targetIndex = allNodes.indexOf(dest);
+                        if (currentIndex < targetIndex) p.insertBefore(touchTarget, dest.nextSibling);
+                        else p.insertBefore(touchTarget, dest);
+                        const currentObjects = canvas.getObjects();
+                        const objTarget = currentObjects[currentObjects.indexOf(objects[targetIndex])];
+                        obj.moveTo(canvas.getObjects().indexOf(objTarget));
+                        canvas.renderAll();
+                    }
+                }, {passive: false});
+
+                d.addEventListener('touchend', () => {
+                    if (touchTarget) { touchTarget.classList.remove('levantada'); touchTarget = null; updateLayers(); }
+                });
+                d.onclick = () => { canvas.setActiveObject(obj); canvas.renderAll(); updateLayers(); };
+                p.appendChild(d);
             });
-            el.addEventListener('pointerup', e => { pointers = pointers.filter(p => p.pointerId !== e.pointerId); if (pointers.length < 2) lastDist = 0; });
         }
-        function getDist(p1, p2) { return Math.sqrt(Math.pow(p2.clientX - p1.clientX, 2) + Math.pow(p2.clientY - p1.clientY, 2)); }
 
-        function initDropper() {
-            const btn = document.getElementById('btn-drop'), lupa = document.getElementById('lupa-color'), panel = document.getElementById('selector-color-visual');
-            btn.addEventListener('touchstart', (e) => { isDropping = true; lupa.style.display = "block"; panel.style.display = "none"; e.preventDefault(); });
-            window.addEventListener('touchmove', (e) => {
-                if (!isDropping) return;
-                const t = e.touches[0]; lupa.style.left = t.clientX + "px"; lupa.style.top = t.clientY + "px";
-                const p = canvas.getPointer(t); const pix = canvas.getContext('2d').getImageData(p.x, p.y, 1, 1).data;
-                const c = `rgb(${pix[0]},${pix[1]},${pix[2]})`; lupa.style.backgroundColor = c; setCol(c);
-            });
-            window.addEventListener('touchend', () => { if(isDropping) { isDropping = false; lupa.style.display = "none"; panel.style.display = "flex"; } });
+        function updateHSB() {
+            const h = document.getElementById('h-in').value, s = document.getElementById('s-in').value, b = document.getElementById('b-in').value;
+            document.getElementById('s-in').style.background = `linear-gradient(to right, hsl(${h}, 0%, 50%), hsl(${h}, 100%, 50%))`;
+            document.getElementById('b-in').style.background = `linear-gradient(to right, #000, hsl(${h}, ${s}%, 50%), #fff)`;
+            setCol(`hsl(${h}, ${s}%, ${b}%)`);
+        }
+
+        function updateRGB() {
+            const r = document.getElementById('r-in').value, g = document.getElementById('g-in').value, bl = document.getElementById('bl-in').value;
+            setCol(`rgb(${r},${g},${bl})`);
         }
 
         function renderSpectrum() {
@@ -222,51 +276,14 @@
             c.addEventListener('touchstart', (e) => pickColor(e, c, ctx));
             c.addEventListener('touchmove', (e) => pickColor(e, c, ctx));
         }
+
         function pickColor(e, c, ctx) {
             const r = c.getBoundingClientRect();
             const d = ctx.getImageData(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top, 1, 1).data;
             setCol(`rgb(${d[0]},${d[1]},${d[2]})`);
         }
 
-        function setCol(c) {
-            color = c;
-            document.getElementById('c-main').style.backgroundColor = c;
-            if(canvas && canvas.isDrawingMode) applyBrush();
-        }
+        function setCol(c) { color = c; document.getElementById('c-main').style.backgroundColor = c; }
 
-        function updateHSB() {
-            const h = document.getElementById('h-in').value, s = document.getElementById('s-in').value, b = document.getElementById('b-in').value;
-            document.getElementById('s-in').style.background = `linear-gradient(to right, #808080, hsl(${h}, 100%, 50%))`;
-            document.getElementById('b-in').style.background = `linear-gradient(to right, #000, hsl(${h}, 100%, 50%))`;
-            setCol(`hsl(${h}, ${s}%, ${b/2}%)`);
-        }
-        function updateRGB() {
-            setCol(`rgb(${document.getElementById('r-in').value},${document.getElementById('g-in').value},${document.getElementById('bl-in').value})`);
-        }
         function switchTab(id) {
-            document.querySelectorAll('.panel-contenido').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            const active = document.getElementById(id); active.classList.add('active');
-            active.style.display = id === 'panel-grid' ? 'grid' : 'flex';
-            event.currentTarget.classList.add('active');
-        }
-        function toggleColor() { const s = document.getElementById('selector-color-visual'); s.style.display = s.style.display === 'flex' ? 'none' : 'flex'; }
-        function toggleLayerMenu() { const c = document.getElementById('contenedor-capas-derecha'); c.style.display = c.style.display === 'flex' ? 'none' : 'flex'; if(c.style.display === 'flex') updateLayers(); }
-        function toggleMiniaturas() { const l = document.getElementById('lista-capas-vertical'); l.style.display = l.style.display === 'none' ? 'flex' : 'none'; }
-        function updateLayers() {
-            const p = document.getElementById('lista-capas-vertical'); p.innerHTML = '';
-            canvas.getObjects().filter(o => o.name !== 'base').forEach(obj => {
-                const d = document.createElement('div'); d.className = 'miniatura-capa' + (canvas.getActiveObject() === obj ? ' activa' : '');
-                const img = document.createElement('img'); img.src = obj.toDataURL({format:'png', quality:0.1});
-                d.onclick = () => { canvas.setActiveObject(obj); canvas.renderAll(); updateLayers(); };
-                d.appendChild(img); p.appendChild(d);
-            });
-        }
-        document.getElementById('f').onchange = (e) => {
-            const r = new FileReader();
-            r.onload = (f) => { fabric.Image.fromURL(f.target.result, (img) => { img.scaleToWidth(150); canvas.add(img); canvas.centerObject(img); canvas.renderAll(); updateLayers(); }); };
-            r.readAsDataURL(e.target.files[0]);
-        };
-    </script>
-</body>
-</html>
+            document.querySelectorAll('.panel-contenido').forEach(p => { p.classList.remove('active'); p.style.display 
