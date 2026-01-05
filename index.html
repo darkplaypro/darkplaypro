@@ -3,287 +3,376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PS Touch Pro - Restaurado y Mejorado</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <title>Dark Player Pro Max - Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { margin: 0; background-color: #0e0e0e; color: white; font-family: sans-serif; overflow: hidden; height: 100vh; touch-action: none; -webkit-user-select: none; }
-        #pantalla-inicio { position: fixed; inset: 0; background: #0e0e0e; z-index: 5000; display: flex; flex-direction: column; padding: 40px; box-sizing: border-box; }
-        .titulo-proyectos { color: #007AFF; font-size: 24px; font-weight: 700; margin-bottom: 60px; }
-        .barra-empezar { background: #007AFF; color: white; width: 100%; max-width: 400px; padding: 18px; border-radius: 8px; text-align: center; font-weight: bold; align-self: center; margin-bottom: 40px; cursor: pointer; }
-        #header { height: 45px; background: #1f1f1f; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #333; z-index: 2000; }
-        .header-btn { color: #007AFF; font-weight: bold; font-size: 14px; }
-        #canvas-container { position: relative; width: 100vw; height: calc(100vh - 120px); background: #111; overflow: hidden; touch-action: none; }
+        :root {
+            --bg-dark: #000000;
+            --accent-green: #2ecc71;
+            --dark-blue: #007bff;
+            --player-white: #ffffff;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Arial Black', sans-serif;
+            margin: 0; padding: 0;
+            width: 100vw; overflow-x: hidden;
+        }
+
+        /* --- LOGO --- */
+        .logo-anim {
+            font-family: 'Arial Black', Gadget, sans-serif;
+            font-size: 12vw;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-align: center;
+            line-height: 1.1;
+            cursor: pointer;
+        }
         
-        /* CAPAS */
-        #contenedor-capas-derecha { position: absolute; bottom: 2px; left: 83.33%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; gap: 4px; z-index: 1500; }
-        #lista-capas-vertical { width: 58px; max-height: 50vh; background: rgba(20, 20, 20, 0.98); border: 1px solid #444; border-radius: 8px; display: flex; flex-direction: column-reverse; align-items: center; padding: 6px 0; gap: 6px; overflow-y: auto; }
-        .miniatura-capa { width: 42px; height: 42px; border: 2px solid #333; border-radius: 4px; background: #000; overflow: hidden; flex-shrink: 0; transition: transform 0.1s; }
-        .miniatura-capa.activa { border-color: #007AFF; }
-        .miniatura-capa.levantada { transform: scale(1.1); box-shadow: 0 0 15px rgba(0, 122, 255, 0.8); border-color: #fff; z-index: 10; opacity: 0.8; }
-        .miniatura-capa img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
-        #menu-capas-acciones { display: flex; gap: 6px; background: #1a1a1a; padding: 5px; border-radius: 8px; border: 1px solid #333; }
-        .btn-add { width: 40px; height: 40px; background: #252525; border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .blue { color: var(--dark-blue); -webkit-text-stroke: 1px var(--dark-blue); }
+        .white { color: var(--player-white); -webkit-text-stroke: 1px var(--player-white); }
 
-        /* MENU PROPIEDADES CAPA */
-        #menu-propiedades-capa { position: absolute; bottom: 85px; right: 70px; width: 180px; background: #1a1a1a; border: 1px solid #444; border-radius: 8px; display: none; flex-direction: column; padding: 12px; z-index: 3000; box-shadow: 0 5px 20px rgba(0,0,0,0.8); }
-        .prop-label { font-size: 11px; color: #888; margin-bottom: 5px; text-transform: uppercase; }
-        #select-fusion { background: #333; color: white; border: 1px solid #555; border-radius: 4px; padding: 5px; font-size: 12px; margin-top: 10px; outline: none; }
-
-        /* PANEL COLOR */
-        #selector-color-visual { position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%); width: 350px; background: #222; border: 1px solid #444; border-radius: 8px; display: none; flex-direction: column; z-index: 3000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .color-body { display: flex; padding: 10px; gap: 10px; height: 210px; }
-        .panel-contenido { flex-grow: 1; display: none; }
-        .panel-contenido.active { display: flex; flex-direction: column; justify-content: center; gap: 8px; }
-        #panel-grid { grid-template-columns: repeat(5, 1fr); gap: 5px; overflow-y: auto; }
-        .color-sugerencia { width: 100%; height: 32px; border-radius: 3px; border: 1px solid #111; }
-        .slider-row { display: flex; flex-direction: column; gap: 2px; font-size: 10px; color: #eee; }
+        /* --- INTRO ANIMACIÓN --- */
+        #intro-layer {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: layerFadeOut 0.8s forwards 3s;
+            pointer-events: none;
+        }
         
-        /* SLIDERS CON GRADIENTES */
-        input[type=range] { -webkit-appearance: none; width: 100%; height: 14px; border-radius: 7px; border: 1px solid #444; outline: none; }
-        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: #fff; border: 2px solid #007AFF; border-radius: 50%; }
+        @keyframes logoEntryPoint {
+            0% { opacity: 0; transform: scale(0.7); filter: blur(10px); }
+            100% { opacity: 1; transform: scale(1); filter: blur(0); }
+        }
+        .intro-logo { animation: logoEntryPoint 1.5s ease-out forwards; }
+        @keyframes layerFadeOut { to { opacity: 0; visibility: hidden; } }
 
-        #h-in { background: linear-gradient(to right, red, yellow, lime, cyan, blue, magenta, red); }
-        #r-in { background: linear-gradient(to right, #000, #ff0000); }
-        #g-in { background: linear-gradient(to right, #000, #00ff00); }
-        #bl-in { background: linear-gradient(to right, #000, #0000ff); }
+        /* --- CABECERA --- */
+        .header {
+            position: fixed;
+            top: 0; width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 20px 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,1) 60%, transparent);
+            z-index: 1000;
+        }
 
-        .pestañas-laterales { width: 55px; display: flex; flex-direction: column; gap: 4px; }
-        .tab { background: #333; border: none; height: 38px; border-radius: 4px; color: white; font-size: 9px; font-weight: bold; opacity: 0.5; }
-        .tab.active { background: #007AFF; opacity: 1; }
-        .color-footer { display: flex; padding: 12px; background: #1a1a1a; gap: 10px; align-items: center; border-top: 1px solid #333; border-radius: 0 0 8px 8px; }
-        .preview-main { width: 50px; height: 35px; border: 2px solid white; border-radius: 3px; }
-        .btn-eyedropper { background: none; border: none; padding: 5px; margin-left: auto; cursor: pointer; }
-        .btn-eyedropper svg { width: 24px; fill: #ccc; }
+        .nav-item {
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 900;
+            color: #666;
+            text-transform: uppercase;
+            padding-bottom: 5px;
+            border-bottom: 3px solid transparent;
+        }
 
-        #lupa-color { position: fixed; width: 70px; height: 70px; border: 3px solid white; border-radius: 4px; z-index: 6000; display: none; pointer-events: none; transform: translate(-50%, -120%); box-shadow: 0 0 15px rgba(0,0,0,0.6); }
+        .nav-item.active {
+            color: white;
+            border-bottom: 3px solid var(--accent-green);
+        }
 
-        #ui-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 75px; background: #1f1f1f; display: flex; align-items: center; justify-content: space-around; border-top: 1px solid #333; z-index: 1000; }
-        .tool { background: none; border: none; display: flex; flex-direction: column; align-items: center; gap: 4px; color: #888; font-size: 10px; width: 50%; }
-        .tool svg { width: 26px; fill: #ccc; }
+        /* --- HERO --- */
+        .hero-centered {
+            height: 85vh;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle, rgba(0,123,255,0.15) 0%, rgba(0,0,0,1) 80%);
+            text-align: center;
+        }
+
+        /* --- CARRUSELES PRINCIPALES --- */
+        .section-container { width: 100%; padding: 20px 0; }
+        .row-title {   
+            font-size: 22px;   
+            margin: 0 15px 15px 15px;   
+            display: flex;   
+            justify-content: space-between;   
+            align-items: center;   
+            font-weight: 900;
+        }
+        
+        .ver-todo { color: var(--accent-green); font-size: 12px; cursor: pointer; text-transform: uppercase; }
+
+        .carousel {  
+            display: flex;   
+            overflow-x: auto;   
+            gap: 12px;  
+            padding: 0 15px 15px 15px;  
+            scrollbar-width: none;  
+        }  
+        .carousel::-webkit-scrollbar { display: none; }  
+
+        .card {  
+            min-width: 135px; height: 200px;  
+            background: #111; border-radius: 8px;  
+            display: flex; flex-direction: column;  
+            justify-content: center; align-items: center;  
+            border: 1px solid #222;
+            flex-shrink: 0;
+            cursor: pointer;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }  
+
+        .card-logo { font-size: 10px; text-align: center; font-weight: 900; }
+        .card-title-overlay {
+            position: absolute; bottom: 0; width: 100%; 
+            background: rgba(0,0,0,0.7); font-size: 10px; 
+            padding: 5px; text-align: center; font-weight: bold;
+        }
+
+        /* --- PANEL ADMIN --- */
+        #admin-panel {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 11000; display: none; flex-direction: column; padding: 20px;
+            overflow-y: auto;
+        }
+        .admin-input {
+            width: 100%; padding: 12px; margin: 10px 0;
+            background: #222; border: 1px solid var(--dark-blue); color: white; border-radius: 5px; font-family: sans-serif;
+        }
+        .admin-btn {
+            background: var(--accent-green); color: black; padding: 15px;
+            border: none; font-weight: bold; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px;
+        }
+
+        /* --- VISTAS --- */
+        #category-view, #player-view {
+            position: fixed; inset: 0; background: black; z-index: 5000;
+            display: none; flex-direction: column; overflow-y: auto;
+        }
+        
+        .grid-full {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 8px; margin-top: 60px; padding: 10px 10px 100px 10px;
+        }
+
+        iframe { flex: 1; border: none; background: #000; }
+        .back-nav { padding: 15px; background: #000; color: var(--accent-green); font-weight: 900; cursor: pointer; border: none; text-align: left; }
+        .back-btn {
+            position: fixed; bottom: 30px; right: 25px; 
+            background: var(--accent-green); color: black; 
+            width: 55px; height: 55px; border-radius: 50%; 
+            display: flex; justify-content: center; align-items: center;
+            font-size: 20px; z-index: 6000; border: none;
+        }
     </style>
 </head>
 <body>
 
-    <div id="lupa-color"></div>
-    <div id="pantalla-inicio">
-        <div class="titulo-proyectos">PROYECTOS</div>
-        <div class="barra-empezar" onclick="initApp(1000, 1000)">EMPEZAR PROYECTO</div>
+<div id="intro-layer">
+    <div class="logo-anim intro-logo">
+        <span class="blue">DARK</span><br><span class="white">PLAYER</span>
+    </div>
+</div>
+
+<div id="main-content">
+    <div class="header">
+        <div id="nav-movies" class="nav-item active" onclick="changeTab('movies')">Películas</div>
+        <div id="nav-series" class="nav-item" onclick="changeTab('series')">Series</div>
     </div>
 
-    <div id="header">
-        <span onclick="location.reload()" class="header-btn">INICIO</span>
-        <span class="header-btn">GUARDAR</span>
-    </div>
-
-    <div id="canvas-container">
-        <canvas id="main-canvas"></canvas>
-
-        <div id="menu-propiedades-capa">
-            <div class="prop-label">Opacidad</div>
-            <input type="range" min="0" max="100" value="100" id="opacidad-input" oninput="cambiarOpacidadCapas(this.value)">
-            <div class="prop-label" style="margin-top:15px">Modo de Fusión</div>
-            <select id="select-fusion" onchange="cambiarFusionCapas(this.value)">
-                <option value="normal">Normal</option>
-                <option value="multiply">Multiplicar</option>
-                <option value="screen">Trama (Screen)</option>
-                <option value="overlay">Superponer</option>
-                <option value="darken">Oscurecer</option>
-                <option value="lighten">Aclarar</option>
-                <option value="color-dodge">Sobreexponer color</option>
-                <option value="color-burn">Subexponer color</option>
-                <option value="hard-light">Luz fuerte</option>
-                <option value="soft-light">Luz suave</option>
-            </select>
+    <div class="hero-centered">
+        <div class="logo-anim" style="font-size: 18vw;" ondblclick="toggleAdmin()">
+            <span class="blue">DARK</span><br><span class="white">PLAYER</span>
         </div>
-
-        <div id="contenedor-capas-derecha">
-            <div id="lista-capas-vertical"></div>
-            <div id="menu-capas-acciones">
-                <div class="btn-add" onclick="togglePropiedadesCapa()"><svg style="width:22px;fill:#ccc" viewBox="0 0 24 24"><path d="M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.81L12,18.54Z"/></svg></div>
-                <div class="btn-add" onclick="document.getElementById('f').click()"><svg style="width:22px;fill:#007AFF" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
-            </div>
-        </div>
-
-        <div id="selector-color-visual">
-            <div class="color-body">
-                <canvas id="canvas-espectro" width="220" height="180" class="panel-contenido active"></canvas>
-                <div id="panel-grid" class="panel-contenido">
-                    <div class="color-sugerencia" style="background:#000000" onclick="setCol('#000000')"></div>
-                    <div class="color-sugerencia" style="background:#333333" onclick="setCol('#333333')"></div>
-                    <div class="color-sugerencia" style="background:#666666" onclick="setCol('#666666')"></div>
-                    <div class="color-sugerencia" style="background:#ffffff" onclick="setCol('#ffffff')"></div>
-                    <div class="color-sugerencia" style="background:#ff0000" onclick="setCol('#ff0000')"></div>
-                    <div class="color-sugerencia" style="background:#ff7f00" onclick="setCol('#ff7f00')"></div>
-                    <div class="color-sugerencia" style="background:#ffff00" onclick="setCol('#ffff00')"></div>
-                    <div class="color-sugerencia" style="background:#00ff00" onclick="setCol('#00ff00')"></div>
-                    <div class="color-sugerencia" style="background:#0000ff" onclick="setCol('#0000ff')"></div>
-                    <div class="color-sugerencia" style="background:#8b00ff" onclick="setCol('#8b00ff')"></div>
-                    <div class="color-sugerencia" style="background:#ffdbac" onclick="setCol('#ffdbac')"></div>
-                    <div class="color-sugerencia" style="background:#f1c27d" onclick="setCol('#f1c27d')"></div>
-                    <div class="color-sugerencia" style="background:#e0ac69" onclick="setCol('#e0ac69')"></div>
-                    <div class="color-sugerencia" style="background:#8d5524" onclick="setCol('#8d5524')"></div>
-                    <div class="color-sugerencia" style="background:#007aff" onclick="setCol('#007aff')"></div>
-                </div>
-                <div id="panel-hsb" class="panel-contenido">
-                    <div class="slider-row">H <input type="range" min="0" max="360" id="h-in" value="200" oninput="updateHSB()"></div>
-                    <div class="slider-row">S <input type="range" min="0" max="100" id="s-in" value="100" oninput="updateHSB()"></div>
-                    <div class="slider-row">B <input type="range" min="0" max="100" id="b-in" value="100" oninput="updateHSB()"></div>
-                </div>
-                <div id="panel-rgb" class="panel-contenido">
-                    <div class="slider-row">R <input type="range" min="0" max="255" id="r-in" value="0" oninput="updateRGB()"></div>
-                    <div class="slider-row">G <input type="range" min="0" max="255" id="g-in" value="122" oninput="updateRGB()"></div>
-                    <div class="slider-row">B <input type="range" min="0" max="255" id="bl-in" value="255" oninput="updateRGB()"></div>
-                </div>
-                <div class="pestañas-laterales">
-                    <button class="tab active" onclick="switchTab('canvas-espectro')">VIS</button>
-                    <button class="tab" onclick="switchTab('panel-grid')">GRID</button>
-                    <button class="tab" onclick="switchTab('panel-hsb')">HSB</button>
-                    <button class="tab" onclick="switchTab('panel-rgb')">RGB</button>
-                </div>
-            </div>
-            <div class="color-footer">
-                <div id="c-main" class="preview-main" style="background: #007AFF;"></div>
-                <button class="btn-eyedropper" id="btn-drop"><svg viewBox="0 0 24 24"><path d="M19.35,11.72L17.22,13.85L15.81,12.44L11.56,16.69L11.56,19.52L10.15,20.93L7.32,18.1L2.37,23.05L1,21.68L5.95,16.73L3.12,13.9L4.53,12.49L7.36,12.49L11.61,8.24L10.2,6.83L12.33,4.7L19.35,11.72M21.47,4.7C22.17,5.4 22.17,6.54 21.47,7.24L20.06,8.65L15.4,4L16.81,2.58C17.5,1.89 18.64,1.89 19.35,2.58L21.47,4.7Z"/></svg></button>
-                <button onclick="toggleColor()" style="background:none; border:none; color:#007AFF; font-weight:bold; font-size:16px;">OK</button>
-            </div>
-        </div>
+        <p style="color: var(--accent-green); letter-spacing: 4px; font-size: 11px; margin-top: 15px; font-weight: 900;">PREMIUM STREAMING</p>
     </div>
 
-    <div id="ui-bottom">
-        <button class="tool" onclick="toggleColor()"><svg viewBox="0 0 24 24"><path d="M12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22M12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20A8,8 0 0,0 12,4"/></svg>Color</button>
-        <button class="tool" onclick="toggleLayerMenu()"><svg style="width:30px" viewBox="0 0 24 24"><path d="M12,16L19.36,10.27L21,9L12,2L3,9L4.63,10.27M12,18.54L4.62,12.81L3,14.07L12,21.07L21,14.07L19.37,12.81L12,18.54Z"/></svg>Capas</button>
-    </div>
+    <div id="catalogo"></div>
+</div>
 
-    <input type="file" id="f" style="display:none" accept="image/*">
+<div id="admin-panel">
+    <h2 style="color: var(--dark-blue)">PANEL DE ADMINISTRACIÓN</h2>
+    <input type="text" id="adm-title" class="admin-input" placeholder="Título">
+    <input type="text" id="adm-img" class="admin-input" placeholder="URL Imagen Portada">
+    <input type="text" id="adm-link" class="admin-input" placeholder="URL Video (Embed)">
+    <select id="adm-cat" class="admin-input">
+        <optgroup label="Películas">
+            <option value="ACCIÓN">ACCIÓN</option>
+            <option value="INFANTIL">INFANTIL</option>
+            <option value="DRAMA">DRAMA</option>
+            <option value="COMEDIA">COMEDIA</option>
+            <option value="TERROR">TERROR</option>
+        </optgroup>
+        <optgroup label="Series">
+            <option value="SERIES POPULARES">SERIES POPULARES</option>
+            <option value="ANIMACIÓN">ANIMACIÓN</option>
+        </optgroup>
+    </select>
+    <button class="admin-btn" onclick="saveContent()">AÑADIR CONTENIDO</button>
+    <button class="admin-btn" style="background:#555" onclick="toggleAdmin()">CERRAR</button>
+    <div id="admin-list" style="margin-top:20px; border-top:1px solid #333; padding-top:10px;"></div>
+</div>
 
-    <script>
-        let canvas, color = '#007AFF', isDropping = false, pointers = [], lastDist = 0, touchTarget = null;
+<div id="category-view">
+    <h2 id="cat-title" style="margin: 80px 0 20px 20px; font-size: 22px; text-transform: uppercase; border-left: 4px solid var(--dark-blue); padding-left: 10px;"></h2>
+    <div class="grid-full" id="grid-full"></div>
+    <button class="back-btn" onclick="closeCategory()"><i class="fa-solid fa-arrow-left"></i></button>
+</div>
 
-        function initApp(w, h) {
-            document.getElementById('pantalla-inicio').style.display = 'none';
-            canvas = new fabric.Canvas('main-canvas', { width: window.innerWidth, height: window.innerHeight - 120, backgroundColor: '#111', selection: true, preserveObjectStacking: true });
+<div id="player-view">
+    <button class="back-nav" onclick="closePlayer()"><i class="fa-solid fa-arrow-left"></i> VOLVER AL MENÚ</button>
+    <iframe id="video-frame" allow="autoplay; fullscreen" allowfullscreen></iframe>
+</div>
+
+<script>
+    // Base de datos local
+    let db = JSON.parse(localStorage.getItem('darkPlayerDB')) || [];
+
+    const movieCategories = ["ACCIÓN", "INFANTIL", "DRAMA", "COMEDIA", "ARTES MARCIALES", "TERROR", "CIENCIA FICCIÓN", "SUSPENSO"];
+    const seriesCategories = ["SERIES POPULARES", "ANIMACIÓN", "DRAMA TV", "DOCUMENTALES"];
+
+    function toggleAdmin() {
+        const p = document.getElementById('admin-panel');
+        p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+        renderAdminList();
+    }
+
+    function saveContent() {
+        const item = {
+            id: Date.now(),
+            title: document.getElementById('adm-title').value,
+            img: document.getElementById('adm-img').value,
+            link: document.getElementById('adm-link').value,
+            cat: document.getElementById('adm-cat').value
+        };
+        if(!item.title || !item.link) return alert("Faltan datos");
+        db.push(item);
+        localStorage.setItem('darkPlayerDB', JSON.stringify(db));
+        alert("Contenido Agregado");
+        location.reload();
+    }
+
+    function deleteItem(id) {
+        db = db.filter(i => i.id !== id);
+        localStorage.setItem('darkPlayerDB', JSON.stringify(db));
+        renderAdminList();
+        renderCatalogo(movieCategories);
+    }
+
+    function renderAdminList() {
+        const list = document.getElementById('admin-list');
+        list.innerHTML = '<h3>Gestionar Contenido:</h3>';
+        db.forEach(i => {
+            list.innerHTML += `<div style="background:#222; margin-bottom:5px; padding:10px; display:flex; justify-content:space-between; align-items:center;">
+                <span>${i.title} (${i.cat})</span>
+                <button onclick="deleteItem(${i.id})" style="color:red; background:none; border:none;">ELIMINAR</button>
+            </div>`;
+        });
+    }
+
+    function changeTab(type) {
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        if(type === 'movies') {
+            document.getElementById('nav-movies').classList.add('active');
+            renderCatalogo(movieCategories);
+        } else {
+            document.getElementById('nav-series').classList.add('active');
+            renderCatalogo(seriesCategories);
+        }
+    }
+
+    function renderCatalogo(list) {
+        const catalogo = document.getElementById('catalogo');
+        catalogo.innerHTML = ''; 
+        list.forEach(cat => {
+            const wrap = document.createElement('div');
+            wrap.className = 'section-container';
+            wrap.innerHTML = `<div class="row-title"><span>${cat}</span><span class="ver-todo" onclick="openCategory('${cat}')">VER TODO +</span></div>`;
             
-            fabric.Object.prototype.set({
-                transparentCorners: false,
-                cornerColor: '#ffffff',
-                cornerStrokeColor: '#007AFF',
-                borderColor: '#007AFF',
-                cornerSize: 12,
-                padding: 10,
-                cornerStyle: 'circle',
-                borderDashArray: [3, 3]
-            });
+            const filteredContent = db.filter(i => i.cat === cat);
 
-            const base = new fabric.Rect({ width: w*0.4, height: h*0.4, fill: 'white', selectable: false, name: 'base' });
-            canvas.add(base); canvas.centerObject(base);
-            
-            canvas.on('selection:created', () => { updateLayers(); sincronizarPanelPropiedades(); });
-            canvas.on('selection:updated', () => { updateLayers(); sincronizarPanelPropiedades(); });
-            canvas.on('selection:cleared', () => { document.getElementById('menu-propiedades-capa').style.display = 'none'; });
-            canvas.on('object:modified', () => updateLayers());
-
-            renderSpectrum(); initDropper(); initPinchZoomNativo(); updateHSB();
-        }
-
-        function togglePropiedadesCapa() {
-            const menu = document.getElementById('menu-propiedades-capa');
-            const activeObj = canvas.getActiveObject();
-            if (!activeObj) { alert("Selecciona una capa primero"); return; }
-            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
-        }
-
-        function sincronizarPanelPropiedades() {
-            const obj = canvas.getActiveObject();
-            if (obj) {
-                document.getElementById('opacidad-input').value = obj.opacity * 100;
-                document.getElementById('select-fusion').value = obj.globalCompositeOperation || 'normal';
-            }
-        }
-
-        function cambiarOpacidadCapas(v) {
-            const obj = canvas.getActiveObject();
-            if (obj) { obj.set('opacity', v / 100); canvas.renderAll(); }
-        }
-
-        function cambiarFusionCapas(v) {
-            const obj = canvas.getActiveObject();
-            if (obj) { obj.set('globalCompositeOperation', v); canvas.renderAll(); }
-        }
-
-        function updateLayers() {
-            const p = document.getElementById('lista-capas-vertical');
-            if(!p || touchTarget) return; 
-            p.innerHTML = '';
-            const objects = canvas.getObjects().filter(o => o.name !== 'base');
-            
-            objects.forEach((obj) => {
-                const d = document.createElement('div');
-                d.className = 'miniatura-capa' + (canvas.getActiveObject() === obj ? ' activa' : '');
-                const img = document.createElement('img');
-                img.src = obj.toDataURL({format:'png', quality:0.1});
-                d.appendChild(img);
-
-                d.addEventListener('touchstart', () => {
-                    touchTarget = d; d.classList.add('levantada');
-                    canvas.setActiveObject(obj); canvas.renderAll();
-                }, {passive: true});
-
-                d.addEventListener('touchmove', (e) => {
-                    if (!touchTarget) return;
-                    const touch = e.touches[0];
-                    const dest = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.miniatura-capa');
-                    if (dest && dest !== touchTarget) {
-                        const allNodes = Array.from(p.children);
-                        const currentIndex = allNodes.indexOf(touchTarget);
-                        const targetIndex = allNodes.indexOf(dest);
-                        if (currentIndex < targetIndex) p.insertBefore(touchTarget, dest.nextSibling);
-                        else p.insertBefore(touchTarget, dest);
-                        const currentObjects = canvas.getObjects();
-                        const objTarget = currentObjects[currentObjects.indexOf(objects[targetIndex])];
-                        obj.moveTo(canvas.getObjects().indexOf(objTarget));
-                        canvas.renderAll();
+            for(let r=1; r<=4; r++) {
+                const car = document.createElement('div');
+                car.className = 'carousel';
+                
+                // Si hay contenido real, lo ponemos en la primera fila, el resto rellena con logos
+                if(r === 1 && filteredContent.length > 0) {
+                    filteredContent.forEach(item => {
+                        car.appendChild(createCard(item));
+                    });
+                } else {
+                    // Relleno de seguridad (20 tarjetas por carrusel como el original)
+                    for(let i=1; i<=20; i++) {
+                        car.appendChild(createPlaceholderCard());
                     }
-                }, {passive: false});
+                }
+                wrap.appendChild(car);
+            }
+            catalogo.appendChild(wrap);
+        });
+    }
 
-                d.addEventListener('touchend', () => {
-                    if (touchTarget) { touchTarget.classList.remove('levantada'); touchTarget = null; updateLayers(); }
-                });
-                d.onclick = () => { canvas.setActiveObject(obj); canvas.renderAll(); updateLayers(); };
-                p.appendChild(d);
-            });
+    function createCard(item) {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.backgroundImage = `url(${item.img})`;
+        card.onclick = () => openPlayer(item.link);
+        if(!item.img) card.innerHTML = `<div class="card-logo"><span class="blue">DARK</span><br><span class="white">PLAYER</span></div>`;
+        card.innerHTML += `<div class="card-title-overlay">${item.title}</div>`;
+        return card;
+    }
+
+    function createPlaceholderCard() {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `<div class="card-logo"><span class="blue">DARK</span><br><span class="white">PLAYER</span></div>`;
+        return card;
+    }
+
+    function openCategory(name) {
+        document.getElementById('main-content').style.display = 'none';
+        const view = document.getElementById('category-view');
+        const grid = document.getElementById('grid-full');
+        document.getElementById('cat-title').innerText = name;
+        grid.innerHTML = ''; 
+        view.style.display = 'flex';
+        
+        const content = db.filter(i => i.cat === name);
+        content.forEach(item => grid.appendChild(createCard(item)));
+        
+        // Rellenar hasta 200 si quieres mantener la estética
+        for(let i=content.length; i<40; i++) {
+            grid.appendChild(createPlaceholderCard());
         }
+    }
 
-        function updateHSB() {
-            const h = document.getElementById('h-in').value, s = document.getElementById('s-in').value, b = document.getElementById('b-in').value;
-            document.getElementById('s-in').style.background = `linear-gradient(to right, hsl(${h}, 0%, 50%), hsl(${h}, 100%, 50%))`;
-            document.getElementById('b-in').style.background = `linear-gradient(to right, #000, hsl(${h}, ${s}%, 50%), #fff)`;
-            setCol(`hsl(${h}, ${s}%, ${b}%)`);
-        }
+    function openPlayer(link) {
+        document.getElementById('video-frame').src = link; 
+        document.getElementById('player-view').style.display = 'flex';
+    }
 
-        function updateRGB() {
-            const r = document.getElementById('r-in').value, g = document.getElementById('g-in').value, bl = document.getElementById('bl-in').value;
-            setCol(`rgb(${r},${g},${bl})`);
-        }
+    function closePlayer() {
+        document.getElementById('video-frame').src = "";
+        document.getElementById('player-view').style.display = 'none';
+    }
 
-        function renderSpectrum() {
-            const c = document.getElementById('canvas-espectro'), ctx = c.getContext('2d', { willReadFrequently: true });
-            const g = ctx.createLinearGradient(0, 0, c.width, 0);
-            g.addColorStop(0,"red"); g.addColorStop(0.2,"yellow"); g.addColorStop(0.4,"green"); g.addColorStop(0.6,"cyan"); g.addColorStop(0.8,"blue"); g.addColorStop(1,"red");
-            ctx.fillStyle = g; ctx.fillRect(0,0,c.width,c.height);
-            const v = ctx.createLinearGradient(0, 0, 0, c.height);
-            v.addColorStop(0, "white"); v.addColorStop(0.5, "transparent"); v.addColorStop(1, "black");
-            ctx.fillStyle = v; ctx.fillRect(0,0,c.width,c.height);
-            c.addEventListener('touchstart', (e) => pickColor(e, c, ctx));
-            c.addEventListener('touchmove', (e) => pickColor(e, c, ctx));
-        }
+    function closeCategory() {
+        document.getElementById('category-view').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+    }
 
-        function pickColor(e, c, ctx) {
-            const r = c.getBoundingClientRect();
-            const d = ctx.getImageData(e.touches[0].clientX - r.left, e.touches[0].clientY - r.top, 1, 1).data;
-            setCol(`rgb(${d[0]},${d[1]},${d[2]})`);
-        }
+    renderCatalogo(movieCategories);
+</script>
 
-        function setCol(c) { color = c; document.getElementById('c-main').style.backgroundColor = c; }
+</body>
+</html>
 
-        function switchTab(id) {
-            document.querySelectorAll('.panel-contenido').forEach(p => { p.classList.remove('active'); p.style.display 
